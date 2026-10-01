@@ -1,20 +1,31 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 int main(int argc, char *argv[]) {
   // Flush after every printf
   setbuf(stdout, NULL);
 
   char userInput[100];
+  bool isExitShell = false;
 
-  printf("$ ");
+	
+  while (!isExitShell) {
+  	printf("$ ");
 
-  fgets(userInput, sizeof(userInput), stdin);
+	fgets(userInput, sizeof(userInput), stdin);
 
-  userInput[strcspn(userInput, "\n")] = '\0';
+	userInput[strcspn(userInput, "\n")] = '\0';
 
-  fprintf(stderr, "%s: command not found\n", userInput);
+	if (!strcmp(userInput, "exit"))
+	{
+		isExitShell = true;
+	} else {
+		fprintf(stderr, "%s: command not found\n", userInput);
+	}
+  }
+
 
   return 0;
 }
