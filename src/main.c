@@ -70,7 +70,7 @@ const char *envPath = getenv("PATH");
 					strcat(binaryLoc, (binaryName));
 					strcat(binaryLoc, "\0");
 
-					if (access(binaryLoc, F_OK) == 0)
+					if (access(binaryLoc, F_OK) == 0 && access(binaryLoc, X_OK) == 0)
 					{
 						isBinExistInPath = true;
 						if (isBinExist(binaryLoc)) {
