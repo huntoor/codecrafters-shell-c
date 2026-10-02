@@ -2,12 +2,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #define INPUT_MAX_SIZE 255
 #define CMD_MAX_SIZE 100
 
 void getCmd(char input[], char inputCmd[]);
 bool isBuiltInCmd(char inputCmd[]);
+bool isBinExist(const char *fileName);
 
 
 char *builtInCmds[] = 
@@ -25,9 +27,18 @@ int main(int argc, char *argv[]) {
 	char userInput[INPUT_MAX_SIZE];
 	char inputCmd[CMD_MAX_SIZE];
 	bool isExitShell = false;
-	
+
+const char *envPath = getenv("PATH");
+#ifdef __unix__
+	const char *envPathDelim = ":";
+#elif _WIN32
+	const char *envPathDelim = ";";
+#endif
 
 	while (!isExitShell) {
+		char *envPathCpy = malloc(strlen(envPath));
+		strcpy(envPathCpy, envPath);
+
 		printf("$ ");
 
 		fgets(userInput, sizeof(userInput), stdin);
@@ -37,11 +48,43 @@ int main(int argc, char *argv[]) {
 
 		if (strncmp(inputCmd, "type", strlen("type")) == 0)
 		{
-			if (isBuiltInCmd(userInput + strlen("type ")))
+			char *binaryName = userInput + strlen("type ");
+
+			if (isBuiltInCmd(binaryName))
 			{
-				printf("%s is a shell builtin\n", userInput + strlen("type "));
+				printf("%s is a shell builtin\n", binaryName);
 			} else {
-				fprintf(stderr, "%s: not found\n", userInput + strlen("type "));
+				bool isBinExistInPath = false;
+				char *token = strtok(envPathCpy, envPathDelim);
+				while (token != NULL && !isBinExistInPath)
+				{
+					char *binaryLoc = malloc(strlen(token) + strlen(binaryName) + 2);
+					if (binaryLoc == NULL)
+					{
+						fprintf(stderr, "Error Allocating Memeory for binaryName");
+						free(envPathCpy);
+						return 1;
+					}
+					strcpy(binaryLoc, token);
+					strcat(binaryLoc, "/");
+					strcat(binaryLoc, (binaryName));
+					strcat(binaryLoc, "\0");
+
+					if (access(binaryLoc, F_OK) == 0)
+					{
+						isBinExistInPath = true;
+						if (isBinExist(binaryLoc)) {
+							printf("%s is %s\n", binaryName, binaryLoc);
+						}
+					}
+
+					token = strtok(NULL, envPathDelim);
+					free(binaryLoc);
+				}
+				if (!isBinExistInPath) 
+				{
+					fprintf(stderr, "%s: not found\n", binaryName);
+				}
 			}
 		} else if (!strncmp(userInput, "exit", strlen("exit")))
 		{
@@ -51,6 +94,7 @@ int main(int argc, char *argv[]) {
 		} else {
 			fprintf(stderr, "%s: command not found\n", userInput);
 		}
+		free(envPathCpy);
 	}
 
 	return 0;
@@ -79,4 +123,15 @@ bool isBuiltInCmd(char inputCmd[])
 		}
 	}	
 	return false;	
+}
+
+bool isBinExist(const char *fileName)
+{
+	FILE *file = fopen(fileName, "rb");
+	if (file == NULL)
+	{
+		return false;
+	}
+	fclose(file);
+	return true;
 }
