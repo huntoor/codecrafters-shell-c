@@ -125,6 +125,7 @@ bool isBinReadable(const char *fileName)
 
 bool isBinExecutable(const char *fileName)
 {
+	printf("FILENAME: %s\n", fileName);
 	if (access(fileName, X_OK) == 0)
 	{
 		return true;
