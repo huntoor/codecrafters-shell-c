@@ -182,15 +182,16 @@ char *getBinPath(const char *binName, bool isBinExec)
 		strcat(binaryPath, "\0");
 // if isBinExec is set the we need to return the bin that is executable or return empty string
 // if isBinExec is not set then just return bin the exists
-		if (!isBinExec && isBinExist(binaryPath))
-		{	
-			free(envPathCpy);
-			return binaryPath;
-		}	
-
 		if (isBinExist(binaryPath))
 		{
+			if (!isBinExec)
+			{
+				free(envPathCpy);
+				return binaryPath;
+			}
+
 			foundBin = true;
+
 			if (isBinExecutable(binaryPath))
 			{
 				free(envPathCpy);
