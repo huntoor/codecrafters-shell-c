@@ -3,14 +3,19 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 #define INPUT_MAX_SIZE 255
 #define CMD_MAX_SIZE 100
 
 void getCmd(char input[], char inputCmd[]);
 bool isBuiltInCmd(char inputCmd[]);
+bool isBinReadable(const char *fileName);
+bool isBinExecutable(const char* fileName);
+bool isBinWritable(const char* fileName);
 bool isBinExist(const char *fileName);
-
+char *getBinPath(const char *binName);
+void executeBin(const char* inputCmdPath, const char *userInput);
 
 char *builtInCmds[] = 
 {
@@ -20,6 +25,7 @@ char *builtInCmds[] =
 };
 int builtInCmdLen = (sizeof(builtInCmds) / sizeof(builtInCmds[0])) - 1;
 
+
 int main(int argc, char *argv[]) {
 	// Flush after every printf
 	setbuf(stdout, NULL);
@@ -28,17 +34,8 @@ int main(int argc, char *argv[]) {
 	char inputCmd[CMD_MAX_SIZE];
 	bool isExitShell = false;
 
-const char *envPath = getenv("PATH");
-#ifdef __unix__
-	const char *envPathDelim = ":";
-#elif _WIN32
-	const char *envPathDelim = ";";
-#endif
 
 	while (!isExitShell) {
-		char *envPathCpy = malloc(strlen(envPath));
-		strcpy(envPathCpy, envPath);
-
 		printf("$ ");
 
 		fgets(userInput, sizeof(userInput), stdin);
@@ -46,55 +43,45 @@ const char *envPath = getenv("PATH");
 		userInput[strcspn(userInput, "\n")] = '\0';
 		getCmd(userInput, inputCmd);
 
-		if (strncmp(inputCmd, "type", strlen("type")) == 0)
+		if (isBuiltInCmd(inputCmd)) // Look for the CMD in here
 		{
-			char *binaryName = userInput + strlen("type ");
-
-			if (isBuiltInCmd(binaryName))
+			if (strncmp(inputCmd, "type", strlen("type")) == 0)
 			{
-				printf("%s is a shell builtin\n", binaryName);
-			} else {
-				bool isBinExistInPath = false;
-				char *token = strtok(envPathCpy, envPathDelim);
-				while (token != NULL && !isBinExistInPath)
+				char *binaryName = userInput + strlen("type ");
+
+				char *binaryLoc = getBinPath(binaryName);
+
+				if (isBuiltInCmd(binaryName))
 				{
-					char *binaryLoc = malloc(strlen(token) + strlen(binaryName) + 2);
+					printf("%s is a shell builtin\n", binaryName);
+				} else {	
 					if (binaryLoc == NULL)
 					{
-						fprintf(stderr, "Error Allocating Memeory for binaryName");
-						free(envPathCpy);
-						return 1;
-					}
-					strcpy(binaryLoc, token);
-					strcat(binaryLoc, "/");
-					strcat(binaryLoc, (binaryName));
-					strcat(binaryLoc, "\0");
-
-					if (access(binaryLoc, F_OK) == 0 && access(binaryLoc, X_OK) == 0)
+						fprintf(stderr, "%s: not found\n", binaryName);
+					} else if (isBinExecutable(binaryLoc))
 					{
-						isBinExistInPath = true;
-						if (isBinExist(binaryLoc)) {
-							printf("%s is %s\n", binaryName, binaryLoc);
-						}
+						printf("%s is %s\n", binaryName, binaryLoc);
 					}
-
-					token = strtok(NULL, envPathDelim);
-					free(binaryLoc);
 				}
-				if (!isBinExistInPath) 
-				{
-					fprintf(stderr, "%s: not found\n", binaryName);
-				}
+				free(binaryLoc);
+			} else if (!strncmp(userInput, "exit", strlen("exit")))
+			{
+				isExitShell = true;
+			} else if (!strncmp(userInput, "echo", strlen("echo"))) {
+				printf("%s\n", userInput + strlen("echo "));	
 			}
-		} else if (!strncmp(userInput, "exit", strlen("exit")))
+		} else // look for the command in the PATH
 		{
-			isExitShell = true;
-		} else if (!strncmp(userInput, "echo", strlen("echo"))) {
-			printf("%s\n", userInput + strlen("echo "));	
-		} else {
-			fprintf(stderr, "%s: command not found\n", userInput);
+			char *binPathLoc = getBinPath(inputCmd);
+
+			if (isBinExist(binPathLoc) && isBinExecutable(binPathLoc))
+			{
+				executeBin(binPathLoc, userInput);
+			} else {
+				fprintf(stderr, "%s: command not found\n", userInput);
+			}
+			free(binPathLoc);
 		}
-		free(envPathCpy);
 	}
 
 	return 0;
@@ -125,7 +112,7 @@ bool isBuiltInCmd(char inputCmd[])
 	return false;	
 }
 
-bool isBinExist(const char *fileName)
+bool isBinReadable(const char *fileName)
 {
 	FILE *file = fopen(fileName, "rb");
 	if (file == NULL)
@@ -134,4 +121,117 @@ bool isBinExist(const char *fileName)
 	}
 	fclose(file);
 	return true;
+}
+
+bool isBinExecutable(const char *fileName)
+{
+	if (access(fileName, X_OK) == 0)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool isBinWritable(const char *fileName)
+{
+	if (access(fileName, W_OK) == 0)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool isBinExist(const char *fileName)
+{
+	if (access(fileName, F_OK) == 0)
+	{
+		return true;
+	}
+	return false;
+}
+
+char *getBinPath(const char *binName)
+{
+
+	const char *envPath = getenv("PATH");
+#ifdef __unix__
+	const char *envPathDelim = ":";
+#elif _WIN32
+	const char *envPathDelim = ";";
+#endif
+
+	char *envPathCpy = malloc(strlen(envPath));
+	strcpy(envPathCpy, envPath);
+
+	bool isBinExistInPath = false;
+
+	char *token = strtok(envPathCpy, envPathDelim);
+	while (token != NULL && !isBinExistInPath)
+	{
+		char *binaryPath = malloc(strlen(token) + strlen(binName) + 2);
+		if (binaryPath == NULL)
+		{
+			fprintf(stderr, "Error Allocating Memeory for binaryName");
+			free(envPathCpy);
+			return NULL;
+		}
+		strcpy(binaryPath, token);
+		strcat(binaryPath, "/");
+		strcat(binaryPath, binName);
+		strcat(binaryPath, "\0");
+
+		if (isBinExist(binaryPath))
+		{
+			isBinExistInPath = true;
+			free(envPathCpy);
+			return binaryPath;
+		}
+		
+		token = strtok(NULL, envPathDelim);
+		free(binaryPath);
+	}
+	free(envPathCpy);
+	return NULL;
+}
+
+void executeBin(const char* inputCmdPath, const char *userInput)
+{
+	char *userInputCpy = malloc(strlen(userInput));
+	strcpy(userInputCpy, userInput);
+
+	char **args = NULL;
+	int index = 0;
+
+	char *token = strtok(userInputCpy, " ");
+	while (token != NULL)
+	{
+		char **tmp = realloc(args, ((index + 2) * sizeof(char*)));
+		if (tmp == NULL)
+		{
+			free(args);
+			free(userInputCpy);
+
+			perror("Error Allocating Memeory for args");
+			return;
+		}
+	
+		args = tmp;
+		args[index] = token;
+		index++;
+		args[index] = NULL;
+
+		token = strtok(NULL, " ");
+	}
+
+	pid_t pid = fork();
+
+	if (pid == 0)
+	{
+		int exevRes = execv(inputCmdPath, args);
+	} else {
+		waitpid(pid, NULL, 0);
+	}
+	
+	free(args);
+	free(userInputCpy);
 }
