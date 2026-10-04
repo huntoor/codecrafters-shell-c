@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <stdarg.h>
 
 #define INPUT_MAX_SIZE 255
 #define CMD_MAX_SIZE 100
@@ -14,7 +15,7 @@ bool isBinReadable(const char *fileName);
 bool isBinExecutable(const char* fileName);
 bool isBinWritable(const char* fileName);
 bool isBinExist(const char *fileName);
-char *getBinPath(const char *binName);
+char *getBinPath(const char *binName, bool isBinExec);
 void executeBin(const char* inputCmdPath, const char *userInput);
 
 char *builtInCmds[] = 
@@ -49,7 +50,7 @@ int main(int argc, char *argv[]) {
 			{
 				char *binaryName = userInput + strlen("type ");
 
-				char *binaryLoc = getBinPath(binaryName);
+				char *binaryLoc = getBinPath(binaryName, true);
 
 				if (isBuiltInCmd(binaryName))
 				{
@@ -58,12 +59,12 @@ int main(int argc, char *argv[]) {
 					if (binaryLoc == NULL)
 					{
 						fprintf(stderr, "%s: not found\n", binaryName);
-					} else if (isBinExecutable(binaryLoc))
+					} else if (strcmp(binaryLoc, "") != 0)
 					{
 						printf("%s is %s\n", binaryName, binaryLoc);
 					}
 				}
-				free(binaryLoc);
+			//	free(binaryLoc);
 			} else if (!strncmp(userInput, "exit", strlen("exit")))
 			{
 				isExitShell = true;
@@ -72,9 +73,9 @@ int main(int argc, char *argv[]) {
 			}
 		} else // look for the command in the PATH
 		{
-			char *binPathLoc = getBinPath(inputCmd);
+			char *binPathLoc = getBinPath(inputCmd, true);
 
-			if (isBinExist(binPathLoc) && isBinExecutable(binPathLoc))
+			if (binPathLoc != NULL)
 			{
 				executeBin(binPathLoc, userInput);
 			} else {
@@ -125,7 +126,7 @@ bool isBinReadable(const char *fileName)
 
 bool isBinExecutable(const char *fileName)
 {
-	printf("FILENAME: %s\n", fileName);
+	//printf("FILENAME: %s\n", fileName);
 	if (access(fileName, X_OK) == 0)
 	{
 		return true;
@@ -151,9 +152,8 @@ bool isBinExist(const char *fileName)
 	return false;
 }
 
-char *getBinPath(const char *binName)
+char *getBinPath(const char *binName, bool isBinExec)
 {
-
 	const char *envPath = getenv("PATH");
 #ifdef __unix__
 	const char *envPathDelim = ":";
@@ -164,10 +164,10 @@ char *getBinPath(const char *binName)
 	char *envPathCpy = malloc(strlen(envPath));
 	strcpy(envPathCpy, envPath);
 
-	bool isBinExistInPath = false;
+	bool foundBin = false;
 
 	char *token = strtok(envPathCpy, envPathDelim);
-	while (token != NULL && !isBinExistInPath)
+	while (token != NULL)
 	{
 		char *binaryPath = malloc(strlen(token) + strlen(binName) + 2);
 		if (binaryPath == NULL)
@@ -180,17 +180,34 @@ char *getBinPath(const char *binName)
 		strcat(binaryPath, "/");
 		strcat(binaryPath, binName);
 		strcat(binaryPath, "\0");
+// if isBinExec is set the we need to return the bin that is executable or return empty string
+// if isBinExec is not set then just return bin the exists
+		if (!isBinExec && isBinExist(binaryPath))
+		{	
+			free(envPathCpy);
+			return binaryPath;
+		}	
 
 		if (isBinExist(binaryPath))
 		{
-			isBinExistInPath = true;
-			free(envPathCpy);
-			return binaryPath;
+			foundBin = true;
+			if (isBinExecutable(binaryPath))
+			{
+				free(envPathCpy);
+				return binaryPath;
+			}
 		}
-		
+
 		token = strtok(NULL, envPathDelim);
 		free(binaryPath);
 	}
+
+	if (foundBin)
+	{
+		free(envPathCpy);
+		return "";
+	}
+
 	free(envPathCpy);
 	return NULL;
 }
