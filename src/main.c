@@ -17,12 +17,14 @@ bool isBinWritable(const char* fileName);
 bool isBinExist(const char *fileName);
 char *getBinPath(const char *binName, bool isBinExec);
 void executeBin(const char* inputCmdPath, const char *userInput);
+char *getCWD();
 
 char *builtInCmds[] = 
 {
 	"echo",
 	"exit",
-	"type"
+	"type",
+	"pwd",
 };
 int builtInCmdLen = (sizeof(builtInCmds) / sizeof(builtInCmds[0])) - 1;
 
@@ -70,6 +72,18 @@ int main(int argc, char *argv[]) {
 				isExitShell = true;
 			} else if (!strncmp(userInput, "echo", strlen("echo"))) {
 				printf("%s\n", userInput + strlen("echo "));	
+			} else if (strncmp(inputCmd, "pwd", strlen("pwd")) == 0)
+			{
+				char *cwd = getcwd(NULL, 0);
+
+				if (cwd != NULL)
+				{
+					printf("%s\n", cwd);
+					free(cwd);
+				} else {
+					perror("Error getting current working Dir");
+				}
+
 			}
 		} else // look for the command in the PATH
 		{
