@@ -25,6 +25,7 @@ char *builtInCmds[] =
 	"exit",
 	"type",
 	"pwd",
+	"cd",
 };
 int builtInCmdLen = (sizeof(builtInCmds) / sizeof(builtInCmds[0])) - 1;
 
@@ -82,6 +83,16 @@ int main(int argc, char *argv[]) {
 					free(cwd);
 				} else {
 					perror("Error getting current working Dir");
+				}
+
+			} else if (strncmp(inputCmd, "cd", strlen("cd")) == 0)
+			{
+				char *path = userInput + strlen("cd ");
+				
+
+				if (chdir(path) != 0)
+				{
+					fprintf(stderr, "cd: %s: No such file or directory\n", path);
 				}
 
 			}
