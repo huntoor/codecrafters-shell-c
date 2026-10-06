@@ -129,6 +129,30 @@ shell/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/shell.dir/build.make CMakeFiles/shell.dir/build
 .PHONY : shell/fast
 
+src/bin_helper.o: src/bin_helper.c.o
+.PHONY : src/bin_helper.o
+
+# target to build an object file
+src/bin_helper.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/shell.dir/build.make CMakeFiles/shell.dir/src/bin_helper.c.o
+.PHONY : src/bin_helper.c.o
+
+src/bin_helper.i: src/bin_helper.c.i
+.PHONY : src/bin_helper.i
+
+# target to preprocess a source file
+src/bin_helper.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/shell.dir/build.make CMakeFiles/shell.dir/src/bin_helper.c.i
+.PHONY : src/bin_helper.c.i
+
+src/bin_helper.s: src/bin_helper.c.s
+.PHONY : src/bin_helper.s
+
+# target to generate assembly for a file
+src/bin_helper.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/shell.dir/build.make CMakeFiles/shell.dir/src/bin_helper.c.s
+.PHONY : src/bin_helper.c.s
+
 src/main.o: src/main.c.o
 .PHONY : src/main.o
 
@@ -162,6 +186,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... shell"
+	@echo "... src/bin_helper.o"
+	@echo "... src/bin_helper.i"
+	@echo "... src/bin_helper.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

@@ -6,17 +6,13 @@
 #include <sys/wait.h>
 #include <stdarg.h>
 
+#include "bin_helper.h"
+
 #define INPUT_MAX_SIZE 255
 #define CMD_MAX_SIZE 100
 
 void getCmd(char input[], char inputCmd[]);
 bool isBuiltInCmd(char inputCmd[]);
-bool isBinReadable(const char *fileName);
-bool isBinExecutable(const char* fileName);
-bool isBinWritable(const char* fileName);
-bool isBinExist(const char *fileName);
-char *getBinPath(const char *binName, bool isBinExec);
-void executeBin(const char* inputCmdPath, const char *userInput);
 char *getCWD();
 
 char *builtInCmds[] = 
@@ -87,14 +83,31 @@ int main(int argc, char *argv[]) {
 
 			} else if (strncmp(inputCmd, "cd", strlen("cd")) == 0)
 			{
-				char *path = userInput + strlen("cd ");
+				char *inputPath = malloc(strlen(userInput + strlen("cd ")));
 				
+				strcpy(inputPath, (userInput + strlen("cd ")));
 
-				if (chdir(path) != 0)
+				if (inputPath[0] == '~')
 				{
-					fprintf(stderr, "cd: %s: No such file or directory\n", path);
+					char *homePath = getenv("HOME");
+					char *tmpPath = malloc((strlen(inputPath) + strlen(homePath) + 2));
+					
+					strcpy(tmpPath, homePath);
+					strcat(tmpPath, (inputPath + strlen("~")));
+					strcat(tmpPath, "\0");
+					
+					if (chdir(tmpPath) != 0)
+					{
+						fprintf(stderr, "cd: %s: No such file or directory\n", tmpPath);
+					}
+
+					free(tmpPath);
+				} else if (chdir(inputPath) != 0)
+				{
+					fprintf(stderr, "cd: %s: No such file or directory\n", inputPath);
 				}
 
+				free(inputPath);
 			}
 		} else // look for the command in the PATH
 		{
@@ -137,145 +150,4 @@ bool isBuiltInCmd(char inputCmd[])
 	}	
 	return false;	
 }
-
-bool isBinReadable(const char *fileName)
-{
-	FILE *file = fopen(fileName, "rb");
-	if (file == NULL)
-	{
-		return false;
-	}
-	fclose(file);
-	return true;
-}
-
-bool isBinExecutable(const char *fileName)
-{
-	//printf("FILENAME: %s\n", fileName);
-	if (access(fileName, X_OK) == 0)
-	{
-		return true;
-	}
-	return false;
-}
-
-bool isBinWritable(const char *fileName)
-{
-	if (access(fileName, W_OK) == 0)
-	{
-		return true;
-	}
-	return false;
-}
-
-bool isBinExist(const char *fileName)
-{
-	if (access(fileName, F_OK) == 0)
-	{
-		return true;
-	}
-	return false;
-}
-
-char *getBinPath(const char *binName, bool isBinExec)
-{
-	const char *envPath = getenv("PATH");
-#ifdef __unix__
-	const char *envPathDelim = ":";
-#elif _WIN32
-	const char *envPathDelim = ";";
-#endif
-
-	char *envPathCpy = malloc(strlen(envPath));
-	strcpy(envPathCpy, envPath);
-
-	bool foundBin = false;
-
-	char *token = strtok(envPathCpy, envPathDelim);
-	while (token != NULL)
-	{
-		char *binaryPath = malloc(strlen(token) + strlen(binName) + 2);
-		if (binaryPath == NULL)
-		{
-			fprintf(stderr, "Error Allocating Memeory for binaryName");
-			free(envPathCpy);
-			return NULL;
-		}
-		strcpy(binaryPath, token);
-		strcat(binaryPath, "/");
-		strcat(binaryPath, binName);
-		strcat(binaryPath, "\0");
-// if isBinExec is set the we need to return the bin that is executable or return empty string
-// if isBinExec is not set then just return bin the exists
-		if (isBinExist(binaryPath))
-		{
-			if (!isBinExec)
-			{
-				free(envPathCpy);
-				return binaryPath;
-			}
-
-			foundBin = true;
-
-			if (isBinExecutable(binaryPath))
-			{
-				free(envPathCpy);
-				return binaryPath;
-			}
-		}
-
-		token = strtok(NULL, envPathDelim);
-		free(binaryPath);
-	}
-
-	if (foundBin)
-	{
-		free(envPathCpy);
-		return "";
-	}
-
-	free(envPathCpy);
-	return NULL;
-}
-
-void executeBin(const char* inputCmdPath, const char *userInput)
-{
-	char *userInputCpy = malloc(strlen(userInput));
-	strcpy(userInputCpy, userInput);
-
-	char **args = NULL;
-	int index = 0;
-
-	char *token = strtok(userInputCpy, " ");
-	while (token != NULL)
-	{
-		char **tmp = realloc(args, ((index + 2) * sizeof(char*)));
-		if (tmp == NULL)
-		{
-			free(args);
-			free(userInputCpy);
-
-			perror("Error Allocating Memeory for args");
-			return;
-		}
-	
-		args = tmp;
-		args[index] = token;
-		index++;
-		args[index] = NULL;
-
-		token = strtok(NULL, " ");
-	}
-
-	pid_t pid = fork();
-
-	if (pid == 0)
-	{
-		int exevRes = execv(inputCmdPath, args);
-	} else {
-		waitpid(pid, NULL, 0);
-	}
-	
-	free(args);
-	free(userInputCpy);
-}
+ 
