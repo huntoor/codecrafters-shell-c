@@ -9,12 +9,10 @@
 #include "bin_helper.h"
 
 #define INPUT_MAX_SIZE 255
-//#define CMD_MAX_SIZE 100
 
 void getCmd(char input[], char inputCmd[]);
 bool isBuiltInCmd(char inputCmd[]);
 char *getCWD();
-char **sanetizeUserInput(char userInput[]);
 char **userInputTokenizer(char userInput[]);
 
 char *builtInCmds[] = 
@@ -42,7 +40,6 @@ int main(int argc, char *argv[]) {
 		fgets(userInput, sizeof(userInput), stdin);
 
 		userInput[strcspn(userInput, "\n")] = '\0';
-		//getCmd(userInput, inputCmd);
 	
 		char **inputArgs = userInputTokenizer(userInput);
 		inputCmd = inputArgs[0];
@@ -51,7 +48,6 @@ int main(int argc, char *argv[]) {
 		{
 			if (strncmp(inputCmd, "type", strlen("type")) == 0)
 			{
-				//char *binaryName = userInput + strlen("type ");
 				char *binaryName = inputArgs[1];
 
 				char *binaryLoc = getBinPath(binaryName, true);
@@ -79,7 +75,6 @@ int main(int argc, char *argv[]) {
 					printf("%s ", inputArgs[i]);
 				}
 				printf("\n");
-				//printf("%s\n", userInput + strlen("echo "));	
 			} else if (strncmp(inputCmd, "pwd", strlen("pwd")) == 0)
 			{
 				char *cwd = getcwd(NULL, 0);
@@ -94,32 +89,6 @@ int main(int argc, char *argv[]) {
 
 			} else if (strncmp(inputCmd, "cd", strlen("cd")) == 0)
 			{
-				//char *inputPath = malloc(strlen(userInput + strlen("cd ")));
-				
-				//strcpy(inputPath, (userInput + strlen("cd ")));
-
-			//	if (inputPath[0] == '~')
-			//	{
-			//		char *homePath = getenv("HOME");
-			//		char *tmpPath = malloc((strlen(inputPath) + strlen(homePath) + 2));
-			//		
-			//		strcpy(tmpPath, homePath);
-			//		strcat(tmpPath, (inputPath + strlen("~")));
-			//		strcat(tmpPath, "\0");
-			//		
-			//		if (chdir(tmpPath) != 0)
-			//		{
-			//			fprintf(stderr, "cd: %s: No such file or directory\n", tmpPath);
-			//		}
-
-			//		free(tmpPath);
-			//	} else if (chdir(inputPath) != 0)
-			//	{
-			//		fprintf(stderr, "cd: %s: No such file or directory\n", inputPath);
-			//	}
-
-			//	free(inputPath);
-
 				if (inputArgs[1] == NULL)
 				{
 					char *homePath = getenv("HOME");
@@ -211,7 +180,6 @@ char **userInputTokenizer(char userInput[])
 
 		if (parserState == NORMAL)
 		{
-			//printf("Normal Statema\n");
 			if (*c == '\'')
 			{
 				parserState = SINGLE_QUOTED;
@@ -329,7 +297,6 @@ char **userInputTokenizer(char userInput[])
 
 	tokenizedInputArr[index] = NULL;
 
-	//free(tokenizedInputArr);
 	free(userInputCpy);
 
 	//for (int i = 0; i < index; i++)
@@ -338,88 +305,6 @@ char **userInputTokenizer(char userInput[])
 	//}
 
 	return tokenizedInputArr;
-}
-
-char **sanetizeUserInput(char userInput[])
-{
-	size_t capacity = 4;
-	size_t index = 0;
-
-	char **sanetizedArr = malloc(capacity * sizeof(char *));
-	if (sanetizedArr == NULL)
-	{
-		perror("Error Allocating Memory for sanetizedArr\n");
-
-		return NULL;
-	}
-
-	char *userInputCpy = malloc(strlen(userInput) + 1);
-	if (userInputCpy == NULL)
-	{
-		perror("Error Allocating Memory for userInputCpy\n");
-		
-		free(sanetizedArr);
-		return NULL;
-	}
-	strcpy(userInputCpy, userInput);
-
-	char *token = strtok(userInputCpy, " \t\n");
-
-	while (token != NULL) {
-		
-		if (capacity <= index)
-		{
-			capacity *= 2;
-			 
-			char **tmp = realloc(sanetizedArr, (capacity * sizeof(char *)));
-			if (tmp == NULL)
-			{
-				perror("Error Allocating Memory in sanetizeUserInput\n");
-
-				for (int i = 0; i < index; i++) {
-					free(sanetizedArr[i]);
-				}
-				
-				free(sanetizedArr);
-				free(userInputCpy);
-				return NULL;
-			}
-
-			sanetizedArr = tmp;
-		}
-
-		if (token[0] == '\'')
-		{
-			token = strtok(NULL, "\'");
-			continue;
-		}
-
-		sanetizedArr[index] = malloc(strlen(token) + 1);
-		if (sanetizedArr[index] == NULL)
-		{
-			perror("Error Allocating Memory for sanetizedArr[]\n");
-
-			for (int i = 0; i < index; i++) {
-				free(sanetizedArr[i]);
-			}
-
-			free(sanetizedArr);
-			free(userInputCpy);
-			return NULL;
-		}
-		strcpy(sanetizedArr[index], token);
-		index++;
-		
-		token = strtok(NULL, " \t\n");
-	}
-	
-	sanetizedArr[index] = NULL;
-
-	index = 0;
-
-	free(userInputCpy);
-
-	return sanetizedArr;
 }
 
 void getCmd(char input[], char inputCmd[])
@@ -447,85 +332,3 @@ bool isBuiltInCmd(char inputCmd[])
 	return false;	
 }
 
-//. Maybe you could use this someday
-// if (*c == '\'' && *prevChar == ' ' && tmpIndex == 0)
-// 		{
-// 			c++;
-// 			nextChar++;
-
-// 			while ((*c != '\'' || *nextChar != ' ') && *c != '\0') {
-// 				if (*c == '\'')
-// 				{
-// 					c++;
-// 					nextChar++;
-
-// 					continue;
-// 				}
-
-// 				tmpInput[tmpIndex] = *c;
-// 				tmpIndex++;
-
-// 				c++;
-// 				nextChar++;
-// 			}
-
-// 			if (tmpIndex > 0)
-// 			{
-// 				tmpInput[tmpIndex] = '\0';
-
-// 				tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
-// 				if (tokenizedInputArr[index] == NULL)
-// 				{
-// 					for (int i = 0; i < index; i++) {
-// 						free(tokenizedInputArr[index]);
-// 					}
-					
-// 					perror("Error Allocating Memory tokenizedInputArr");	
-
-// 					free(tokenizedInputArr);
-// 					free(userInputCpy);
-// 					return NULL;
-
-// 				}
-// 				strcpy(tokenizedInputArr[index], tmpInput);
-// 				index++;
-// 				tmpIndex = 0;
-// 			}
-// 			continue;
-// 			printf("Last C is %c\n", *c);
-// 		}
-
-// 		if (*c != ' ')
-// 		{
-// 			// Add char to tmpInput
-// 			if (*c != '\'')
-// 			{
-// 				tmpInput[tmpIndex] = *c;
-// 				tmpIndex++;
-// 			}
-
-// 		} else {
-// 			// cpy tmpInput to tokinzedInputArr if tmpIndex > 0 else skip the space character
-// 			if (tmpIndex > 0)
-// 			{
-// 				tmpInput[tmpIndex] = '\0';
-
-// 				tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
-// 				if (tokenizedInputArr[index] == NULL)
-// 				{
-// 					for (int i = 0; i < index; i++) {
-// 						free(tokenizedInputArr[index]);
-// 					}
-					
-// 					perror("Error Allocating Memory tokenizedInputArr");	
-
-// 					free(tokenizedInputArr);
-// 					free(userInputCpy);
-// 					return NULL;
-
-// 				}
-// 				strcpy(tokenizedInputArr[index], tmpInput);
-// 				index++;
-// 				tmpIndex = 0;
-// 			}
-// 		}
