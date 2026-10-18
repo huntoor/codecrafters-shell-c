@@ -108,6 +108,18 @@ char *getBinPath(const char *binName, bool isBinExec)
 	return NULL;
 }
 
+void executeBin2(const char* inputCmdPath, char *const *userInputArgs)
+{
+	pid_t pid = fork();
+
+	if (pid == 0)
+	{
+		int exevRes = execv(inputCmdPath, userInputArgs);
+	} else {
+		waitpid(pid, NULL, 0);
+	}
+}
+
 void executeBin(const char* inputCmdPath, const char *userInput)
 {
 	char *userInputCpy = malloc(strlen(userInput));

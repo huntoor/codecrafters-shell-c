@@ -7,3 +7,4 @@ bool isBinWritable(const char* fileName);
 bool isBinExist(const char *fileName);
 char *getBinPath(const char *binName, bool isBinExec);
 void executeBin(const char* inputCmdPath, const char *userInput);
+void executeBin2(const char* inputCmdPath, char *const *userInputArgs);
