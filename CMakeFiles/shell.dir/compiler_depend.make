@@ -166,6 +166,7 @@ CMakeFiles/shell.dir/src/main.c.o: src/main.c \
   /usr/include/bits/waitflags.h \
   /usr/include/bits/waitstatus.h \
   /usr/include/bits/wordsize.h \
+  /usr/include/ctype.h \
   /usr/include/endian.h \
   /usr/include/features-time64.h \
   /usr/include/features.h \
@@ -424,6 +425,8 @@ src/bin_helper.c:
 /lib64/libc.so.6:
 
 /usr/include/bits/types/locale_t.h:
+
+/usr/include/ctype.h:
 
 /usr/include/bits/types/sig_atomic_t.h:
 

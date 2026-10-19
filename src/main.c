@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #include "bin_helper.h"
 
@@ -13,7 +14,8 @@
 void getCmd(char input[], char inputCmd[]);
 bool isBuiltInCmd(char inputCmd[]);
 char *getCWD();
-char **userInputTokenizer(char userInput[]);
+char **userInputTokenizer(char *userInput);
+char *getUserInput();
 
 char *builtInCmds[] = 
 {
@@ -30,18 +32,24 @@ int main(int argc, char *argv[]) {
 	// Flush after every printf
 	setbuf(stdout, NULL);
 
-	char userInput[INPUT_MAX_SIZE];
+	//char userInput[INPUT_MAX_SIZE];
+	char *userInput;
 	char *inputCmd;
 	bool isExitShell = false;
 
 	while (!isExitShell) {
 		printf("$ ");
 
-		fgets(userInput, sizeof(userInput), stdin);
+		//fgets(userInput, sizeof(userInput), stdin);
+		userInput = getUserInput();
 
-		userInput[strcspn(userInput, "\n")] = '\0';
+		//userInput[strcspn(userInput, "\n")] = '\0';
 	
 		char **inputArgs = userInputTokenizer(userInput);
+		if (inputArgs[0] == NULL)
+		{
+			continue;
+		}
 		inputCmd = inputArgs[0];
 
 		if (isBuiltInCmd(inputCmd)) // Look for built in CMDs
@@ -116,12 +124,15 @@ int main(int argc, char *argv[]) {
 			}
 			free(binPathLoc);
 		}
+
+		free(inputArgs);
 	}
+	//free(userInput);
 
 	return 0;
 }
 
-char **userInputTokenizer(char userInput[])
+char **userInputTokenizer(char *userInput)
 {
 	enum parser_state {
 		NORMAL,
@@ -133,14 +144,22 @@ char **userInputTokenizer(char userInput[])
 	size_t capacity = 4;
 	size_t index = 0;
 	
-	char tmpInput[INPUT_MAX_SIZE];
+	size_t tmpCapacity = 255;
 	size_t tmpIndex = 0;
+	char *tmpInput = malloc(tmpCapacity * sizeof(char));
+	if (tmpInput == NULL)
+	{
+		perror("Error Allocating Memory for tokenizedInputArr");
+
+		return NULL;
+	}
 
 	char **tokenizedInputArr = malloc(capacity * sizeof(char *));
 	if (tokenizedInputArr == NULL)
 	{
 		perror("Error Allocating Memory for tokenizedInputArr");
 
+		free(tmpInput);
 		return NULL;
 	}
 	
@@ -150,6 +169,7 @@ char **userInputTokenizer(char userInput[])
 		perror("Error Allocating Memory for userInputCpy");
 
 		free(tokenizedInputArr);
+		free(tmpInput);
 		return NULL;
 	}
 	strcpy(userInputCpy, userInput);
@@ -158,7 +178,7 @@ char **userInputTokenizer(char userInput[])
 	{
 		char *prevChar = (c == userInputCpy) ? c : c - 1;
 		char *nextChar = (*c == '\0') ? c : c + 1;
-		if (capacity <= index)
+		if (index + 1 >= capacity)
 		{
 			capacity *= 2;
 			 
@@ -171,11 +191,29 @@ char **userInputTokenizer(char userInput[])
 					free(tokenizedInputArr[i]);
 				}
 				
+				free(tmpInput);
 				free(tokenizedInputArr);
 				free(userInputCpy);
 				return NULL;
 			}
 			tokenizedInputArr = tmp;
+		}
+
+		if (tmpIndex + 1 >= tmpCapacity)
+		{
+			tmpCapacity *= 2;
+			 
+			char *tmp = realloc(tmpInput, (tmpCapacity * sizeof(char)));
+			if (tmp == NULL)
+			{
+				perror("Error Allocating Memory in tmpInput\n");
+				
+				free(tmpInput);
+				free(tokenizedInputArr);
+				free(userInputCpy);
+				return NULL;
+			}
+			tmpInput = tmp;
 		}
 
 		if (parserState == NORMAL)
@@ -187,16 +225,36 @@ char **userInputTokenizer(char userInput[])
 				continue;
 			}
 
-			if (*c != ' ')
+			if (!isspace(*c))
 			{
 				if (*c == '~' && tmpIndex == 0)
 				{
 					char *homePath = getenv("HOME");
 
-					for (int i = 0; homePath[i]; i++)
+					if (homePath != NULL)
 					{
-						tmpInput[tmpIndex] = homePath[i];
-						tmpIndex++;
+						for (int i = 0; homePath[i]; i++)
+						{
+							if (tmpIndex + 1 >= tmpCapacity)
+							{
+								capacity *= 2;
+								 
+								char *tmp = realloc(tmpInput, (capacity * sizeof(char)));
+								if (tmp == NULL)
+								{
+									perror("Error Allocating Memory in tmpInput\n");
+									
+									free(tmpInput);
+									free(tokenizedInputArr);
+									free(userInputCpy);
+									return NULL;
+								}
+								tmpInput = tmp;
+							}
+
+							tmpInput[tmpIndex] = homePath[i];
+							tmpIndex++;
+						}
 					}
 
 				} else {
@@ -205,7 +263,7 @@ char **userInputTokenizer(char userInput[])
 				}
 			}
 
-			if (*c == ' ' && tmpIndex > 0)
+			if (isspace(*c) && tmpIndex > 0)
 			{
 				tmpInput[tmpIndex] = '\0';
 
@@ -213,7 +271,7 @@ char **userInputTokenizer(char userInput[])
 				if (tokenizedInputArr[index] == NULL)
 				{
 					for (int i = 0; i < index; i++) {
-						free(tokenizedInputArr[index]);
+						free(tokenizedInputArr[i]);
 					}
 					
 					perror("Error Allocating Memory tokenizedInputArr");	
@@ -298,6 +356,7 @@ char **userInputTokenizer(char userInput[])
 	tokenizedInputArr[index] = NULL;
 
 	free(userInputCpy);
+	free(tmpInput);
 
 	//for (int i = 0; i < index; i++)
 	//{
@@ -332,3 +391,48 @@ bool isBuiltInCmd(char inputCmd[])
 	return false;	
 }
 
+char *getUserInput()
+{
+	int input;
+
+	size_t capacity = 128;
+	size_t index = 0;
+
+	char *userInput = malloc(sizeof(char) * capacity);
+	if (userInput == NULL) {
+		perror("Memeory Allocating for userInput Failed");
+
+		return NULL;
+	}
+	
+	while (1) {
+		input = getchar();
+		if (index >= capacity) {
+			capacity *= 2;
+
+			char *tmp = realloc(userInput, (sizeof(char) * capacity));
+			if (tmp == NULL) {
+				perror("Memeory Allocating Failed");
+
+				free(userInput);
+				return NULL;
+			}
+
+			userInput = tmp;
+		}
+
+		if (input == '\n' || input == EOF)
+		{
+			userInput[index] = '\0';
+			index++;
+
+			break;
+		}
+
+		userInput[index] = input;
+		index++;
+
+	}
+
+	return userInput;
+}
