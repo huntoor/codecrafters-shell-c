@@ -137,6 +137,7 @@ char **userInputTokenizer(char *userInput)
 	enum parser_state {
 		NORMAL,
 		SINGLE_QUOTED, 
+		DOUBLE_QUOTED, 
 	} parser_state;
 
 	enum parser_state parserState = NORMAL;
@@ -221,6 +222,11 @@ char **userInputTokenizer(char *userInput)
 			if (*c == '\'')
 			{
 				parserState = SINGLE_QUOTED;
+
+				continue;
+			} else if (*c == '"')
+			{
+				parserState = DOUBLE_QUOTED;
 
 				continue;
 			}
@@ -328,6 +334,46 @@ char **userInputTokenizer(char *userInput)
 				tmpIndex++;
 			}
 		}
+
+		if (parserState == DOUBLE_QUOTED)
+		{
+			if (*c == '"' && isspace(*nextChar))
+			{
+				if (tmpIndex > 0)
+				{
+					tmpInput[tmpIndex] = '\0';
+
+					tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
+					if (tokenizedInputArr[index] == NULL)
+					{
+						for (int i = 0; i < index; i++) {
+							free(tokenizedInputArr[index]);
+						}
+						
+						perror("Error Allocating Memory tokenizedInputArr");	
+
+						free(tokenizedInputArr);
+						free(userInputCpy);
+						return NULL;
+
+					}
+					strcpy(tokenizedInputArr[index], tmpInput);
+					index++;
+					tmpIndex = 0;
+				}
+				
+				parserState = NORMAL;
+
+				continue;
+			}
+
+			if (*c != '"')
+			{
+				tmpInput[tmpIndex] = *c;
+				tmpIndex++;
+			}
+
+		}
 	}
 	
 	if (tmpIndex != 0)
@@ -358,10 +404,10 @@ char **userInputTokenizer(char *userInput)
 	free(userInputCpy);
 	free(tmpInput);
 
-	//for (int i = 0; i < index; i++)
-	//{
-		//printf("Token :%s\n", tokenizedInputArr[i]);
-	//}
+//	for (int i = 0; i < index; i++)
+//	{
+//		printf("Token :%s\n", tokenizedInputArr[i]);
+//	}
 
 	return tokenizedInputArr;
 }
