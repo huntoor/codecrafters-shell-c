@@ -17,6 +17,15 @@ char *getCWD();
 char **userInputTokenizer(char *userInput);
 char *getUserInput();
 
+char **initializeDarrString(size_t *capacity);
+int increaseSizeofDarrString(char ***arr, size_t arrLastIndex, size_t *capacity);
+int addStringToDarr(char ***dstArr, char **srcArr, size_t *arrLastIndex, size_t srcLen);
+
+char *initializeDarr(size_t *capacity);
+int increaseSizeofDarr(char **arr, size_t *capacity);
+
+
+
 char *builtInCmds[] = 
 {
 	"echo",
@@ -141,13 +150,11 @@ char **userInputTokenizer(char *userInput)
 	} parser_state;
 
 	enum parser_state parserState = NORMAL;
-
-	size_t capacity = 4;
-	size_t index = 0;
 	
 	size_t tmpCapacity = 255;
 	size_t tmpIndex = 0;
-	char *tmpInput = malloc(tmpCapacity * sizeof(char));
+	//char *tmpInput = malloc(tmpCapacity * sizeof(char));
+	char *tmpInput = initializeDarr(&tmpCapacity);
 	if (tmpInput == NULL)
 	{
 		perror("Error Allocating Memory for tokenizedInputArr");
@@ -155,7 +162,10 @@ char **userInputTokenizer(char *userInput)
 		return NULL;
 	}
 
-	char **tokenizedInputArr = malloc(capacity * sizeof(char *));
+	size_t capacity = 4;
+	size_t index = 0;
+	//char **tokenizedInputArr = malloc(capacity * sizeof(char *));
+	char **tokenizedInputArr = initializeDarrString(&capacity);
 	if (tokenizedInputArr == NULL)
 	{
 		perror("Error Allocating Memory for tokenizedInputArr");
@@ -181,40 +191,57 @@ char **userInputTokenizer(char *userInput)
 		char *nextChar = (*c == '\0') ? c : c + 1;
 		if (index + 1 >= capacity)
 		{
-			capacity *= 2;
-			 
-			char **tmp = realloc(tokenizedInputArr, (capacity * sizeof(char *)));
-			if (tmp == NULL)
-			{
-				perror("Error Allocating Memory in sanetizeUserInput\n");
+		//	capacity *= 2;
+		//	 
+		//	char **tmp = realloc(tokenizedInputArr, (capacity * sizeof(char *)));
+		//	if (tmp == NULL)
+		//	{
+		//		perror("Error Allocating Memory in sanetizeUserInput\n");
 
-				for (int i = 0; i < index; i++) {
-					free(tokenizedInputArr[i]);
-				}
-				
+		//		for (int i = 0; i < index; i++) {
+		//			free(tokenizedInputArr[i]);
+		//		}
+		//		
+		//		free(tmpInput);
+		//		free(tokenizedInputArr);
+		//		free(userInputCpy);
+		//		return NULL;
+		//	}
+		//	tokenizedInputArr = tmp;
+		//
+			if (increaseSizeofDarrString(&tokenizedInputArr, index, &capacity) == -1)
+			{
 				free(tmpInput);
 				free(tokenizedInputArr);
 				free(userInputCpy);
+
 				return NULL;
 			}
-			tokenizedInputArr = tmp;
 		}
+
 
 		if (tmpIndex + 1 >= tmpCapacity)
 		{
-			tmpCapacity *= 2;
-			 
-			char *tmp = realloc(tmpInput, (tmpCapacity * sizeof(char)));
-			if (tmp == NULL)
+			//tmpCapacity *= 2;
+			// 
+			//char *tmp = realloc(tmpInput, (tmpCapacity * sizeof(char)));
+			//if (tmp == NULL)
+			//{
+			//	perror("Error Allocating Memory in tmpInput\n");
+			//	
+			//	free(tmpInput);
+			//	free(tokenizedInputArr);
+			//	free(userInputCpy);
+			//	return NULL;
+			//}
+			//tmpInput = tmp;
+			if (increaseSizeofDarr(&tmpInput, &tmpCapacity) == -1)
 			{
-				perror("Error Allocating Memory in tmpInput\n");
-				
-				free(tmpInput);
 				free(tokenizedInputArr);
 				free(userInputCpy);
+
 				return NULL;
 			}
-			tmpInput = tmp;
 		}
 
 		if (parserState == NORMAL)
@@ -243,19 +270,27 @@ char **userInputTokenizer(char *userInput)
 						{
 							if (tmpIndex + 1 >= tmpCapacity)
 							{
-								capacity *= 2;
-								 
-								char *tmp = realloc(tmpInput, (capacity * sizeof(char)));
-								if (tmp == NULL)
+							//	tmpCapacity *= 2;
+							//	 
+							//	char *tmp = realloc(tmpInput, (tmpCapacity * sizeof(char)));
+							//	if (tmp == NULL)
+							//	{
+							//		perror("Error Allocating Memory in tmpInput\n");
+							//		
+							//		free(tmpInput);
+							//		free(tokenizedInputArr);
+							//		free(userInputCpy);
+							//		return NULL;
+							//	}
+							//	tmpInput = tmp;
+								
+								if (increaseSizeofDarr(&tmpInput, &tmpCapacity) == -1)
 								{
-									perror("Error Allocating Memory in tmpInput\n");
-									
-									free(tmpInput);
 									free(tokenizedInputArr);
 									free(userInputCpy);
+
 									return NULL;
 								}
-								tmpInput = tmp;
 							}
 
 							tmpInput[tmpIndex] = homePath[i];
@@ -272,24 +307,34 @@ char **userInputTokenizer(char *userInput)
 			if (isspace(*c) && tmpIndex > 0)
 			{
 				tmpInput[tmpIndex] = '\0';
+				tmpIndex = 0;
 
-				tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
-				if (tokenizedInputArr[index] == NULL)
+				if (addStringToDarr(&tokenizedInputArr, &tmpInput, &index, (strlen(tmpInput))) == -1)
 				{
-					for (int i = 0; i < index; i++) {
-						free(tokenizedInputArr[i]);
-					}
-					
 					perror("Error Allocating Memory tokenizedInputArr");	
 
-					free(tokenizedInputArr);
 					free(userInputCpy);
+					free(tokenizedInputArr);
 					return NULL;
-
 				}
-				strcpy(tokenizedInputArr[index], tmpInput);
-				index++;
-				tmpIndex = 0;
+
+			//	tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
+			//	if (tokenizedInputArr[index] == NULL)
+			//	{
+			//		for (int i = 0; i < index; i++) {
+			//			free(tokenizedInputArr[i]);
+			//		}
+			//		
+			//		perror("Error Allocating Memory tokenizedInputArr");	
+
+			//		free(tokenizedInputArr);
+			//		free(userInputCpy);
+			//		return NULL;
+
+			//	}
+			//	strcpy(tokenizedInputArr[index], tmpInput);
+			//	index++;
+			//	tmpIndex = 0;
 
 				continue;
 			}
@@ -303,24 +348,34 @@ char **userInputTokenizer(char *userInput)
 				if (tmpIndex > 0)
 				{
 					tmpInput[tmpIndex] = '\0';
+					tmpIndex = 0;
 
-					tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
-					if (tokenizedInputArr[index] == NULL)
+					if (addStringToDarr(&tokenizedInputArr, &tmpInput, &index, (strlen(tmpInput))) == -1)
 					{
-						for (int i = 0; i < index; i++) {
-							free(tokenizedInputArr[index]);
-						}
-						
 						perror("Error Allocating Memory tokenizedInputArr");	
 
-						free(tokenizedInputArr);
 						free(userInputCpy);
+						free(tokenizedInputArr);
 						return NULL;
-
 					}
-					strcpy(tokenizedInputArr[index], tmpInput);
-					index++;
-					tmpIndex = 0;
+
+				//	tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
+				//	if (tokenizedInputArr[index] == NULL)
+				//	{
+				//		for (int i = 0; i < index; i++) {
+				//			free(tokenizedInputArr[index]);
+				//		}
+				//		
+				//		perror("Error Allocating Memory tokenizedInputArr");	
+
+				//		free(tokenizedInputArr);
+				//		free(userInputCpy);
+				//		return NULL;
+
+				//	}
+				//	strcpy(tokenizedInputArr[index], tmpInput);
+				//	index++;
+				//	tmpIndex = 0;
 				}
 
 				parserState = NORMAL;
@@ -342,24 +397,33 @@ char **userInputTokenizer(char *userInput)
 				if (tmpIndex > 0)
 				{
 					tmpInput[tmpIndex] = '\0';
+					tmpIndex = 0;
 
-					tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
-					if (tokenizedInputArr[index] == NULL)
+					if (addStringToDarr(&tokenizedInputArr, &tmpInput, &index, (strlen(tmpInput))) == -1)
 					{
-						for (int i = 0; i < index; i++) {
-							free(tokenizedInputArr[index]);
-						}
-						
 						perror("Error Allocating Memory tokenizedInputArr");	
 
-						free(tokenizedInputArr);
 						free(userInputCpy);
+						free(tokenizedInputArr);
 						return NULL;
-
 					}
-					strcpy(tokenizedInputArr[index], tmpInput);
-					index++;
-					tmpIndex = 0;
+				//	tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
+				//	if (tokenizedInputArr[index] == NULL)
+				//	{
+				//		for (int i = 0; i < index; i++) {
+				//			free(tokenizedInputArr[index]);
+				//		}
+				//		
+				//		perror("Error Allocating Memory tokenizedInputArr");	
+
+				//		free(tokenizedInputArr);
+				//		free(userInputCpy);
+				//		return NULL;
+
+				//	}
+				//	strcpy(tokenizedInputArr[index], tmpInput);
+				//	index++;
+				//	tmpIndex = 0;
 				}
 				
 				parserState = NORMAL;
@@ -379,24 +443,44 @@ char **userInputTokenizer(char *userInput)
 	if (tmpIndex != 0)
 	{
 		tmpInput[tmpIndex] = '\0';
+		tmpIndex = 0;
 
-		tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
-		if (tokenizedInputArr[index] == NULL)
+		if (index + 1 > capacity)
 		{
-			for (int i = 0; i < index; i++) {
-				free(tokenizedInputArr[index]);
+			if (increaseSizeofDarrString(&tokenizedInputArr, index, &capacity) == -1)
+			{
+				free(tmpInput);
+				free(tokenizedInputArr);
+				free(userInputCpy);
+
+				return NULL;
 			}
-			
+		}
+
+		if (addStringToDarr(&tokenizedInputArr, &tmpInput, &index, (strlen(tmpInput))) == -1)
+		{
 			perror("Error Allocating Memory tokenizedInputArr");	
 
-			free(tokenizedInputArr);
 			free(userInputCpy);
+			free(tokenizedInputArr);
 			return NULL;
-
 		}
-		strcpy(tokenizedInputArr[index], tmpInput);
-		index++;
-		tmpIndex = 0;
+	//	tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
+	//	if (tokenizedInputArr[index] == NULL)
+	//	{
+	//		for (int i = 0; i < index; i++) {
+	//			free(tokenizedInputArr[index]);
+	//		}
+	//		
+	//		perror("Error Allocating Memory tokenizedInputArr");	
+
+	//		free(tokenizedInputArr);
+	//		free(userInputCpy);
+	//		return NULL;
+
+	//	}
+	//	strcpy(tokenizedInputArr[index], tmpInput);
+	//	index++;
 	}
 
 	tokenizedInputArr[index] = NULL;
@@ -481,4 +565,84 @@ char *getUserInput()
 	}
 
 	return userInput;
+}
+
+char **initializeDarrString(size_t *capacity)
+{
+	char **dArr = malloc((*capacity) * sizeof(char *));
+	if (dArr == NULL)
+	{
+		perror("Error Allocating Memory for tokenizedInputArr");
+
+		return NULL;
+	}
+
+	return dArr;
+}
+
+int increaseSizeofDarrString(char ***arr, size_t arrLastIndex, size_t *capacity)
+{
+	*capacity *= 2;
+	 
+	char **tmp = realloc(*arr, ((*capacity) * sizeof(char *)));
+	if (tmp == NULL)
+	{
+		perror("Error Allocating Memory in sanetizeUserInput\n");
+
+		for (int i = 0; i < arrLastIndex; i++) {
+			free((*arr)[i]);
+		}
+	
+		return -1;
+	}
+	*arr = tmp;
+	return 1;
+}
+
+char *initializeDarr(size_t *capacity)
+{
+	char *arr = malloc((*capacity) * sizeof(char));
+	if (arr == NULL)
+	{
+		perror("Error Allocating Memeory");
+
+		return NULL;
+	}
+
+	return arr;
+}
+
+int increaseSizeofDarr(char **arr, size_t *capacity)
+{
+	*capacity *= 2;
+
+	char *tmp = realloc(*arr, ((*capacity) * sizeof(char)));
+	if (tmp == NULL) {
+		return  -1;
+	}
+
+	*arr = tmp;
+	
+	return 1;
+}
+
+
+int addStringToDarr(char ***dstArr, char **srcArr, size_t *arrLastIndex, size_t srcLen)
+{
+	(*dstArr)[*arrLastIndex] = malloc(srcLen + 1);
+	if ((*dstArr)[*arrLastIndex] == NULL)
+	{
+		for (int i = 0; i < *arrLastIndex; i++) {
+			free((*dstArr)[i]);
+		}
+		
+		perror("Error Allocating Memory dstArr");	
+
+		return -1;
+
+	}
+	strcpy((*dstArr)[*arrLastIndex], *srcArr);
+	*arrLastIndex += 1;
+
+	return 1;
 }
