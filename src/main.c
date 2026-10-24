@@ -412,6 +412,15 @@ char **userInputTokenizer(char *userInput)
 
 		if (parserState == DOUBLE_QUOTED)
 		{
+			if (*c == '\\' && *nextChar != '\0')
+			{
+				c++; 
+				tmpInput[tmpIndex] = *c;
+				tmpIndex++;
+
+				continue;
+
+			}
 			if (*c == '"' && isspace(*nextChar))
 			{
 				if (tmpIndex > 0)
