@@ -258,6 +258,14 @@ char **userInputTokenizer(char *userInput)
 
 		if (parserState == NORMAL)
 		{
+			if (*c == '\\' && *nextChar != '\0')
+			{
+				c++;
+				tmpInput[tmpIndex] = *c;
+				tmpIndex++;	
+
+				continue;
+			}
 			if (*c == '\'')
 			{
 				parserState = SINGLE_QUOTED;
