@@ -56,7 +56,7 @@ char *getBinPath(const char *binName, bool isBinExec)
 	const char *envPathDelim = ";";
 #endif
 
-	char *envPathCpy = malloc(strlen(envPath));
+	char *envPathCpy = malloc(strlen(envPath) + 1);
 	strcpy(envPathCpy, envPath);
 
 	bool foundBin = false;

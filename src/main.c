@@ -57,6 +57,8 @@ int main(int argc, char *argv[]) {
 		char **inputArgs = userInputTokenizer(userInput);
 		if (inputArgs[0] == NULL)
 		{
+			free(inputArgs);
+			free(userInput);
 			continue;
 		}
 		inputCmd = inputArgs[0];
@@ -65,6 +67,13 @@ int main(int argc, char *argv[]) {
 		{
 			if (strncmp(inputCmd, "type", strlen("type")) == 0)
 			{
+				if (inputArgs[1] == NULL)
+				{
+					free(inputArgs[0]);
+					free(inputArgs);
+					free(userInput);
+					continue;
+				}
 				char *binaryName = inputArgs[1];
 
 				char *binaryLoc = getBinPath(binaryName, true);
@@ -81,7 +90,7 @@ int main(int argc, char *argv[]) {
 						printf("%s is %s\n", binaryName, binaryLoc);
 					}
 				}
-			//	free(binaryLoc);
+				free(binaryLoc);
 			} else if (!strncmp(inputCmd, "exit", strlen("exit")))
 			{
 				isExitShell = true;
@@ -134,9 +143,12 @@ int main(int argc, char *argv[]) {
 			free(binPathLoc);
 		}
 
+		for (int i = 0; inputArgs[i]; i++) {
+			free(inputArgs[i]);
+		}
 		free(inputArgs);
+		free(userInput);
 	}
-	//free(userInput);
 
 	return 0;
 }
@@ -561,7 +573,6 @@ char *getUserInput()
 
 		userInput[index] = input;
 		index++;
-
 	}
 
 	return userInput;
