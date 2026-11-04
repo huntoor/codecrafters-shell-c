@@ -427,7 +427,7 @@ s_command *userInputParser(char **userInputTokens)
 	{
 		perror("Error Allocating Memory");
 		
-		// Need to return NULL
+		return NULL;
 	}
 
 	for (int i = 0; userInputTokens[i]; i++) {
