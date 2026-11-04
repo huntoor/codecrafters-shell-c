@@ -153,6 +153,30 @@ src/bin_helper.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/shell.dir/build.make CMakeFiles/shell.dir/src/bin_helper.c.s
 .PHONY : src/bin_helper.c.s
 
+src/dynamic_arr_helper.o: src/dynamic_arr_helper.c.o
+.PHONY : src/dynamic_arr_helper.o
+
+# target to build an object file
+src/dynamic_arr_helper.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/shell.dir/build.make CMakeFiles/shell.dir/src/dynamic_arr_helper.c.o
+.PHONY : src/dynamic_arr_helper.c.o
+
+src/dynamic_arr_helper.i: src/dynamic_arr_helper.c.i
+.PHONY : src/dynamic_arr_helper.i
+
+# target to preprocess a source file
+src/dynamic_arr_helper.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/shell.dir/build.make CMakeFiles/shell.dir/src/dynamic_arr_helper.c.i
+.PHONY : src/dynamic_arr_helper.c.i
+
+src/dynamic_arr_helper.s: src/dynamic_arr_helper.c.s
+.PHONY : src/dynamic_arr_helper.s
+
+# target to generate assembly for a file
+src/dynamic_arr_helper.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/shell.dir/build.make CMakeFiles/shell.dir/src/dynamic_arr_helper.c.s
+.PHONY : src/dynamic_arr_helper.c.s
+
 src/main.o: src/main.c.o
 .PHONY : src/main.o
 
@@ -189,6 +213,9 @@ help:
 	@echo "... src/bin_helper.o"
 	@echo "... src/bin_helper.i"
 	@echo "... src/bin_helper.s"
+	@echo "... src/dynamic_arr_helper.o"
+	@echo "... src/dynamic_arr_helper.i"
+	@echo "... src/dynamic_arr_helper.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

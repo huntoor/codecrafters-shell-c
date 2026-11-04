@@ -8,24 +8,9 @@
 #include <ctype.h>
 
 #include "bin_helper.h"
+#include "dynamic_arr_helper.h"
 
-#define INPUT_MAX_SIZE 255
-
-void getCmd(char input[], char inputCmd[]);
-bool isBuiltInCmd(char inputCmd[]);
-char *getCWD();
-char **userInputTokenizer(char *userInput);
-char *getUserInput();
-
-char **initializeDarrString(size_t *capacity);
-int increaseSizeofDarrString(char ***arr, size_t arrLastIndex, size_t *capacity);
-int addStringToDarr(char ***dstArr, char **srcArr, size_t *arrLastIndex, size_t srcLen);
-
-char *initializeDarr(size_t *capacity);
-int increaseSizeofDarr(char **arr, size_t *capacity);
-
-
-
+//#define INPUT_MAX_SIZE 255
 char *builtInCmds[] = 
 {
 	"echo",
@@ -36,12 +21,34 @@ char *builtInCmds[] =
 };
 int builtInCmdLen = (sizeof(builtInCmds) / sizeof(builtInCmds[0])) - 1;
 
+typedef struct {
+	char **args;
+	char *outFile;
+	bool isRedirectOut;
+	bool isRedirectErr;
+	bool isAppend;
+} s_command;
 
+
+void getCmd(char input[], char inputCmd[]);
+bool isBuiltInCmd(char inputCmd[]);
+char *getCWD();
+
+char **userInputTokenizer(char *userInput);
+s_command *userInputParser(char **userInputTokens);
+void freeCommand(s_command *cmd);
+char *getUserInput();
+
+// char **initializeDarrString(size_t *capacity);
+// int increaseSizeofDarrString(char ***arr, size_t arrLastIndex, size_t *capacity);
+// int addStringToDarr(char ***dstArr, char **srcArr, size_t *arrLastIndex, size_t srcLen);
+
+// char *initializeDarr(size_t *capacity);
+// int increaseSizeofDarr(char **arr, size_t *capacity);
 int main(int argc, char *argv[]) {
 	// Flush after every printf
 	setbuf(stdout, NULL);
 
-	//char userInput[INPUT_MAX_SIZE];
 	char *userInput;
 	char *inputCmd;
 	bool isExitShell = false;
@@ -49,11 +56,9 @@ int main(int argc, char *argv[]) {
 	while (!isExitShell) {
 		printf("$ ");
 
-		//fgets(userInput, sizeof(userInput), stdin);
 		userInput = getUserInput();
 
-		//userInput[strcspn(userInput, "\n")] = '\0';
-	
+			
 		char **inputArgs = userInputTokenizer(userInput);
 		if (inputArgs[0] == NULL)
 		{
@@ -62,6 +67,8 @@ int main(int argc, char *argv[]) {
 			continue;
 		}
 		inputCmd = inputArgs[0];
+
+		s_command *command = userInputParser(inputArgs);
 
 		if (isBuiltInCmd(inputCmd)) // Look for built in CMDs
 		{
@@ -135,7 +142,6 @@ int main(int argc, char *argv[]) {
 
 			if (binPathLoc != NULL)
 			{
-				//executeBin(binPathLoc, userInput);
 				executeBin2(binPathLoc, inputArgs);
 			} else {
 				fprintf(stderr, "%s: command not found\n", userInput);
@@ -148,6 +154,7 @@ int main(int argc, char *argv[]) {
 		}
 		free(inputArgs);
 		free(userInput);
+		freeCommand(command);
 	}
 
 	return 0;
@@ -165,7 +172,6 @@ char **userInputTokenizer(char *userInput)
 	
 	size_t tmpCapacity = 255;
 	size_t tmpIndex = 0;
-	//char *tmpInput = malloc(tmpCapacity * sizeof(char));
 	char *tmpInput = initializeDarr(&tmpCapacity);
 	if (tmpInput == NULL)
 	{
@@ -176,7 +182,6 @@ char **userInputTokenizer(char *userInput)
 
 	size_t capacity = 4;
 	size_t index = 0;
-	//char **tokenizedInputArr = malloc(capacity * sizeof(char *));
 	char **tokenizedInputArr = initializeDarrString(&capacity);
 	if (tokenizedInputArr == NULL)
 	{
@@ -203,24 +208,6 @@ char **userInputTokenizer(char *userInput)
 		char *nextChar = (*c == '\0') ? c : c + 1;
 		if (index + 1 >= capacity)
 		{
-		//	capacity *= 2;
-		//	 
-		//	char **tmp = realloc(tokenizedInputArr, (capacity * sizeof(char *)));
-		//	if (tmp == NULL)
-		//	{
-		//		perror("Error Allocating Memory in sanetizeUserInput\n");
-
-		//		for (int i = 0; i < index; i++) {
-		//			free(tokenizedInputArr[i]);
-		//		}
-		//		
-		//		free(tmpInput);
-		//		free(tokenizedInputArr);
-		//		free(userInputCpy);
-		//		return NULL;
-		//	}
-		//	tokenizedInputArr = tmp;
-		//
 			if (increaseSizeofDarrString(&tokenizedInputArr, index, &capacity) == -1)
 			{
 				free(tmpInput);
@@ -234,19 +221,6 @@ char **userInputTokenizer(char *userInput)
 
 		if (tmpIndex + 1 >= tmpCapacity)
 		{
-			//tmpCapacity *= 2;
-			// 
-			//char *tmp = realloc(tmpInput, (tmpCapacity * sizeof(char)));
-			//if (tmp == NULL)
-			//{
-			//	perror("Error Allocating Memory in tmpInput\n");
-			//	
-			//	free(tmpInput);
-			//	free(tokenizedInputArr);
-			//	free(userInputCpy);
-			//	return NULL;
-			//}
-			//tmpInput = tmp;
 			if (increaseSizeofDarr(&tmpInput, &tmpCapacity) == -1)
 			{
 				free(tokenizedInputArr);
@@ -290,20 +264,6 @@ char **userInputTokenizer(char *userInput)
 						{
 							if (tmpIndex + 1 >= tmpCapacity)
 							{
-							//	tmpCapacity *= 2;
-							//	 
-							//	char *tmp = realloc(tmpInput, (tmpCapacity * sizeof(char)));
-							//	if (tmp == NULL)
-							//	{
-							//		perror("Error Allocating Memory in tmpInput\n");
-							//		
-							//		free(tmpInput);
-							//		free(tokenizedInputArr);
-							//		free(userInputCpy);
-							//		return NULL;
-							//	}
-							//	tmpInput = tmp;
-								
 								if (increaseSizeofDarr(&tmpInput, &tmpCapacity) == -1)
 								{
 									free(tokenizedInputArr);
@@ -337,25 +297,6 @@ char **userInputTokenizer(char *userInput)
 					free(tokenizedInputArr);
 					return NULL;
 				}
-
-			//	tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
-			//	if (tokenizedInputArr[index] == NULL)
-			//	{
-			//		for (int i = 0; i < index; i++) {
-			//			free(tokenizedInputArr[i]);
-			//		}
-			//		
-			//		perror("Error Allocating Memory tokenizedInputArr");	
-
-			//		free(tokenizedInputArr);
-			//		free(userInputCpy);
-			//		return NULL;
-
-			//	}
-			//	strcpy(tokenizedInputArr[index], tmpInput);
-			//	index++;
-			//	tmpIndex = 0;
-
 				continue;
 			}
 		}
@@ -378,24 +319,6 @@ char **userInputTokenizer(char *userInput)
 						free(tokenizedInputArr);
 						return NULL;
 					}
-
-				//	tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
-				//	if (tokenizedInputArr[index] == NULL)
-				//	{
-				//		for (int i = 0; i < index; i++) {
-				//			free(tokenizedInputArr[index]);
-				//		}
-				//		
-				//		perror("Error Allocating Memory tokenizedInputArr");	
-
-				//		free(tokenizedInputArr);
-				//		free(userInputCpy);
-				//		return NULL;
-
-				//	}
-				//	strcpy(tokenizedInputArr[index], tmpInput);
-				//	index++;
-				//	tmpIndex = 0;
 				}
 
 				parserState = NORMAL;
@@ -436,23 +359,6 @@ char **userInputTokenizer(char *userInput)
 						free(tokenizedInputArr);
 						return NULL;
 					}
-				//	tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
-				//	if (tokenizedInputArr[index] == NULL)
-				//	{
-				//		for (int i = 0; i < index; i++) {
-				//			free(tokenizedInputArr[index]);
-				//		}
-				//		
-				//		perror("Error Allocating Memory tokenizedInputArr");	
-
-				//		free(tokenizedInputArr);
-				//		free(userInputCpy);
-				//		return NULL;
-
-				//	}
-				//	strcpy(tokenizedInputArr[index], tmpInput);
-				//	index++;
-				//	tmpIndex = 0;
 				}
 				
 				parserState = NORMAL;
@@ -494,22 +400,6 @@ char **userInputTokenizer(char *userInput)
 			free(tokenizedInputArr);
 			return NULL;
 		}
-	//	tokenizedInputArr[index] = malloc(strlen(tmpInput) + 1);
-	//	if (tokenizedInputArr[index] == NULL)
-	//	{
-	//		for (int i = 0; i < index; i++) {
-	//			free(tokenizedInputArr[index]);
-	//		}
-	//		
-	//		perror("Error Allocating Memory tokenizedInputArr");	
-
-	//		free(tokenizedInputArr);
-	//		free(userInputCpy);
-	//		return NULL;
-
-	//	}
-	//	strcpy(tokenizedInputArr[index], tmpInput);
-	//	index++;
 	}
 
 	tokenizedInputArr[index] = NULL;
@@ -523,6 +413,64 @@ char **userInputTokenizer(char *userInput)
 //	}
 
 	return tokenizedInputArr;
+}
+
+s_command *userInputParser(char **userInputTokens)
+{
+	s_command *cmd = malloc(sizeof(*cmd));
+	
+	size_t capacity = 4;
+	size_t index = 0;
+	cmd->args = initializeDarrString(&capacity);
+
+	if (cmd->args == NULL)
+	{
+		perror("Error Allocating Memory");
+		
+		// Need to return NULL
+	}
+
+	for (int i = 0; userInputTokens[i]; i++) {
+		if (strcmp(userInputTokens[i], ">") == 0 || strcmp(userInputTokens[i], "1>") == 0)
+		{
+			cmd->isRedirectOut = true;
+			i++;
+			if (userInputTokens[i] == NULL)
+			{
+				break;
+			} else {
+				cmd->outFile = malloc(strlen(userInputTokens[i]) + 1);
+
+				strcpy(cmd->outFile, userInputTokens[i]);
+			}
+
+			continue;
+		}
+
+		if (index + 1 >= capacity)
+		{
+			increaseSizeofDarrString(&cmd->args, index, &capacity);
+		}
+		addStringToDarr(&cmd->args, &userInputTokens[i], &index, strlen(userInputTokens[i]));
+	}
+
+	return cmd;
+}
+
+void freeCommand(s_command *cmd)
+{
+	if (cmd == NULL) return;
+
+	if (cmd->args != NULL)
+	{
+		for (size_t i = 0; cmd->args[i]; i++) {
+			free(cmd->args[i]);
+		}
+		free(cmd->args);
+	}
+
+	free(cmd->outFile);
+	free(cmd);
 }
 
 void getCmd(char input[], char inputCmd[])
@@ -595,82 +543,82 @@ char *getUserInput()
 	return userInput;
 }
 
-char **initializeDarrString(size_t *capacity)
-{
-	char **dArr = malloc((*capacity) * sizeof(char *));
-	if (dArr == NULL)
-	{
-		perror("Error Allocating Memory for tokenizedInputArr");
+// char **initializeDarrString(size_t *capacity)
+// {
+// 	char **dArr = malloc((*capacity) * sizeof(char *));
+// 	if (dArr == NULL)
+// 	{
+// 		perror("Error Allocating Memory for tokenizedInputArr");
 
-		return NULL;
-	}
+// 		return NULL;
+// 	}
 
-	return dArr;
-}
+// 	return dArr;
+// }
 
-int increaseSizeofDarrString(char ***arr, size_t arrLastIndex, size_t *capacity)
-{
-	*capacity *= 2;
+// int increaseSizeofDarrString(char ***arr, size_t arrLastIndex, size_t *capacity)
+// {
+// 	*capacity *= 2;
 	 
-	char **tmp = realloc(*arr, ((*capacity) * sizeof(char *)));
-	if (tmp == NULL)
-	{
-		perror("Error Allocating Memory in sanetizeUserInput\n");
+// 	char **tmp = realloc(*arr, ((*capacity) * sizeof(char *)));
+// 	if (tmp == NULL)
+// 	{
+// 		perror("Error Allocating Memory in sanetizeUserInput\n");
 
-		for (int i = 0; i < arrLastIndex; i++) {
-			free((*arr)[i]);
-		}
+// 		for (int i = 0; i < arrLastIndex; i++) {
+// 			free((*arr)[i]);
+// 		}
 	
-		return -1;
-	}
-	*arr = tmp;
-	return 1;
-}
+// 		return -1;
+// 	}
+// 	*arr = tmp;
+// 	return 1;
+// }
 
-char *initializeDarr(size_t *capacity)
-{
-	char *arr = malloc((*capacity) * sizeof(char));
-	if (arr == NULL)
-	{
-		perror("Error Allocating Memeory");
+// char *initializeDarr(size_t *capacity)
+// {
+// 	char *arr = malloc((*capacity) * sizeof(char));
+// 	if (arr == NULL)
+// 	{
+// 		perror("Error Allocating Memeory");
 
-		return NULL;
-	}
+// 		return NULL;
+// 	}
 
-	return arr;
-}
+// 	return arr;
+// }
 
-int increaseSizeofDarr(char **arr, size_t *capacity)
-{
-	*capacity *= 2;
+// int increaseSizeofDarr(char **arr, size_t *capacity)
+// {
+// 	*capacity *= 2;
 
-	char *tmp = realloc(*arr, ((*capacity) * sizeof(char)));
-	if (tmp == NULL) {
-		return  -1;
-	}
+// 	char *tmp = realloc(*arr, ((*capacity) * sizeof(char)));
+// 	if (tmp == NULL) {
+// 		return  -1;
+// 	}
 
-	*arr = tmp;
+// 	*arr = tmp;
 	
-	return 1;
-}
+// 	return 1;
+// }
 
 
-int addStringToDarr(char ***dstArr, char **srcArr, size_t *arrLastIndex, size_t srcLen)
-{
-	(*dstArr)[*arrLastIndex] = malloc(srcLen + 1);
-	if ((*dstArr)[*arrLastIndex] == NULL)
-	{
-		for (int i = 0; i < *arrLastIndex; i++) {
-			free((*dstArr)[i]);
-		}
+// int addStringToDarr(char ***dstArr, char **srcArr, size_t *arrLastIndex, size_t srcLen)
+// {
+// 	(*dstArr)[*arrLastIndex] = malloc(srcLen + 1);
+// 	if ((*dstArr)[*arrLastIndex] == NULL)
+// 	{
+// 		for (int i = 0; i < *arrLastIndex; i++) {
+// 			free((*dstArr)[i]);
+// 		}
 		
-		perror("Error Allocating Memory dstArr");	
+// 		perror("Error Allocating Memory dstArr");	
 
-		return -1;
+// 		return -1;
 
-	}
-	strcpy((*dstArr)[*arrLastIndex], *srcArr);
-	*arrLastIndex += 1;
+// 	}
+// 	strcpy((*dstArr)[*arrLastIndex], *srcArr);
+// 	*arrLastIndex += 1;
 
-	return 1;
-}
+// 	return 1;
+// }
