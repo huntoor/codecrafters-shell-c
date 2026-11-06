@@ -52,6 +52,8 @@ char *getBinPath(const char *binName, bool isBinExec)
 	const char *envPath = getenv("PATH");
 #ifdef __unix__
 	const char *envPathDelim = ":";
+#elif __APPLE__
+	const char *envPathDelim = ":";
 #elif _WIN32
 	const char *envPathDelim = ";";
 #endif

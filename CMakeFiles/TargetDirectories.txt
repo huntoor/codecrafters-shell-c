@@ -1,3 +1,0 @@
-/home/hunter/Documents/Projects/codecrafters-shell-c/CMakeFiles/shell.dir
-/home/hunter/Documents/Projects/codecrafters-shell-c/CMakeFiles/edit_cache.dir
-/home/hunter/Documents/Projects/codecrafters-shell-c/CMakeFiles/rebuild_cache.dir

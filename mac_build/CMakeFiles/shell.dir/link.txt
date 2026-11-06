@@ -1,0 +1,1 @@
+/usr/bin/cc  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/shell.dir/src/bin_helper.c.o CMakeFiles/shell.dir/src/dynamic_arr_helper.c.o CMakeFiles/shell.dir/src/main.c.o -o shell  -lreadline
