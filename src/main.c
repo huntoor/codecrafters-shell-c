@@ -66,9 +66,11 @@ int main(int argc, char *argv[]) {
 			free(userInput);
 			continue;
 		}
-		inputCmd = inputArgs[0];
+//		inputCmd = inputArgs[0];
 
 		s_command *command = userInputParser(inputArgs);
+		inputCmd = command->args[0];
+
 
 		if (isBuiltInCmd(inputCmd)) // Look for built in CMDs
 		{
