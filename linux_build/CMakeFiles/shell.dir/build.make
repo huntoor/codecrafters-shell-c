@@ -56,7 +56,7 @@ EQUALS = =
 CMAKE_SOURCE_DIR = /home/hunter/Documents/Projects/codecrafters-shell-c
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/hunter/Documents/Projects/codecrafters-shell-c
+CMAKE_BINARY_DIR = /home/hunter/Documents/Projects/codecrafters-shell-c/linux_build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/shell.dir/depend.make
@@ -73,9 +73,9 @@ CMakeFiles/shell.dir/codegen:
 .PHONY : CMakeFiles/shell.dir/codegen
 
 CMakeFiles/shell.dir/src/bin_helper.c.o: CMakeFiles/shell.dir/flags.make
-CMakeFiles/shell.dir/src/bin_helper.c.o: src/bin_helper.c
+CMakeFiles/shell.dir/src/bin_helper.c.o: /home/hunter/Documents/Projects/codecrafters-shell-c/src/bin_helper.c
 CMakeFiles/shell.dir/src/bin_helper.c.o: CMakeFiles/shell.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/hunter/Documents/Projects/codecrafters-shell-c/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/shell.dir/src/bin_helper.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/hunter/Documents/Projects/codecrafters-shell-c/linux_build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/shell.dir/src/bin_helper.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/shell.dir/src/bin_helper.c.o -MF CMakeFiles/shell.dir/src/bin_helper.c.o.d -o CMakeFiles/shell.dir/src/bin_helper.c.o -c /home/hunter/Documents/Projects/codecrafters-shell-c/src/bin_helper.c
 
 CMakeFiles/shell.dir/src/bin_helper.c.i: cmake_force
@@ -87,9 +87,9 @@ CMakeFiles/shell.dir/src/bin_helper.c.s: cmake_force
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/hunter/Documents/Projects/codecrafters-shell-c/src/bin_helper.c -o CMakeFiles/shell.dir/src/bin_helper.c.s
 
 CMakeFiles/shell.dir/src/dynamic_arr_helper.c.o: CMakeFiles/shell.dir/flags.make
-CMakeFiles/shell.dir/src/dynamic_arr_helper.c.o: src/dynamic_arr_helper.c
+CMakeFiles/shell.dir/src/dynamic_arr_helper.c.o: /home/hunter/Documents/Projects/codecrafters-shell-c/src/dynamic_arr_helper.c
 CMakeFiles/shell.dir/src/dynamic_arr_helper.c.o: CMakeFiles/shell.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/hunter/Documents/Projects/codecrafters-shell-c/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/shell.dir/src/dynamic_arr_helper.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/hunter/Documents/Projects/codecrafters-shell-c/linux_build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/shell.dir/src/dynamic_arr_helper.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/shell.dir/src/dynamic_arr_helper.c.o -MF CMakeFiles/shell.dir/src/dynamic_arr_helper.c.o.d -o CMakeFiles/shell.dir/src/dynamic_arr_helper.c.o -c /home/hunter/Documents/Projects/codecrafters-shell-c/src/dynamic_arr_helper.c
 
 CMakeFiles/shell.dir/src/dynamic_arr_helper.c.i: cmake_force
@@ -101,9 +101,9 @@ CMakeFiles/shell.dir/src/dynamic_arr_helper.c.s: cmake_force
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/hunter/Documents/Projects/codecrafters-shell-c/src/dynamic_arr_helper.c -o CMakeFiles/shell.dir/src/dynamic_arr_helper.c.s
 
 CMakeFiles/shell.dir/src/main.c.o: CMakeFiles/shell.dir/flags.make
-CMakeFiles/shell.dir/src/main.c.o: src/main.c
+CMakeFiles/shell.dir/src/main.c.o: /home/hunter/Documents/Projects/codecrafters-shell-c/src/main.c
 CMakeFiles/shell.dir/src/main.c.o: CMakeFiles/shell.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/hunter/Documents/Projects/codecrafters-shell-c/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/shell.dir/src/main.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/hunter/Documents/Projects/codecrafters-shell-c/linux_build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/shell.dir/src/main.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/shell.dir/src/main.c.o -MF CMakeFiles/shell.dir/src/main.c.o.d -o CMakeFiles/shell.dir/src/main.c.o -c /home/hunter/Documents/Projects/codecrafters-shell-c/src/main.c
 
 CMakeFiles/shell.dir/src/main.c.i: cmake_force
@@ -129,7 +129,7 @@ shell: CMakeFiles/shell.dir/src/main.c.o
 shell: CMakeFiles/shell.dir/build.make
 shell: CMakeFiles/shell.dir/compiler_depend.ts
 shell: CMakeFiles/shell.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/hunter/Documents/Projects/codecrafters-shell-c/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking C executable shell"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/hunter/Documents/Projects/codecrafters-shell-c/linux_build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking C executable shell"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/shell.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -141,6 +141,6 @@ CMakeFiles/shell.dir/clean:
 .PHONY : CMakeFiles/shell.dir/clean
 
 CMakeFiles/shell.dir/depend:
-	cd /home/hunter/Documents/Projects/codecrafters-shell-c && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/hunter/Documents/Projects/codecrafters-shell-c /home/hunter/Documents/Projects/codecrafters-shell-c /home/hunter/Documents/Projects/codecrafters-shell-c /home/hunter/Documents/Projects/codecrafters-shell-c /home/hunter/Documents/Projects/codecrafters-shell-c/CMakeFiles/shell.dir/DependInfo.cmake "--color=$(COLOR)" shell
+	cd /home/hunter/Documents/Projects/codecrafters-shell-c/linux_build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/hunter/Documents/Projects/codecrafters-shell-c /home/hunter/Documents/Projects/codecrafters-shell-c /home/hunter/Documents/Projects/codecrafters-shell-c/linux_build /home/hunter/Documents/Projects/codecrafters-shell-c/linux_build /home/hunter/Documents/Projects/codecrafters-shell-c/linux_build/CMakeFiles/shell.dir/DependInfo.cmake "--color=$(COLOR)" shell
 .PHONY : CMakeFiles/shell.dir/depend
 

@@ -273,7 +273,7 @@ shell
  /usr/lib64/libatomic.so.1.2.0
  /usr/lib64/libc_nonshared.a
  /usr/lib64/libtinfo.so.6
- /home/hunter/Documents/Projects/codecrafters-shell-c/CMakeFiles/shell.dir/src/bin_helper.c.o
- /home/hunter/Documents/Projects/codecrafters-shell-c/CMakeFiles/shell.dir/src/dynamic_arr_helper.c.o
- /home/hunter/Documents/Projects/codecrafters-shell-c/CMakeFiles/shell.dir/src/main.c.o
+ /home/hunter/Documents/Projects/codecrafters-shell-c/linux_build/CMakeFiles/shell.dir/src/bin_helper.c.o
+ /home/hunter/Documents/Projects/codecrafters-shell-c/linux_build/CMakeFiles/shell.dir/src/dynamic_arr_helper.c.o
+ /home/hunter/Documents/Projects/codecrafters-shell-c/linux_build/CMakeFiles/shell.dir/src/main.c.o
 

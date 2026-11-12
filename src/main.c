@@ -46,17 +46,27 @@ char *getUserInput();
 // char *initializeDarr(size_t *capacity);
 // int increaseSizeofDarr(char **arr, size_t *capacity);
 int main(int argc, char *argv[]) {
-	// Flush after every printf
-	setbuf(stdout, NULL);
 
 	char *userInput;
 	char *inputCmd;
 	bool isExitShell = false;
 
 	while (!isExitShell) {
-		printf("$ ");
+		if (isatty(STDIN_FILENO))
+		{
+			// Flush after every printf
+			setbuf(stdout, NULL);
+			printf("$ ");
+		}
 
 		userInput = getUserInput();
+		if (userInput == NULL)
+		{
+			putchar('\n');
+			isExitShell = true;
+
+			continue;
+		}
 
 			
 		char **inputArgs = userInputTokenizer(userInput);
@@ -103,11 +113,15 @@ int main(int argc, char *argv[]) {
 			} else if (!strncmp(inputCmd, "exit", strlen("exit")))
 			{
 				isExitShell = true;
-			} else if (!strncmp(inputCmd, "echo", strlen("echo"))) {
-				
+			} else if (!strncmp(inputCmd, "echo", strlen("echo"))) 
+			{
 				for (int i = 1; inputArgs[i]; i++)
 				{
-					printf("%s ", inputArgs[i]);
+					if (i > 1)
+					{
+						printf(" ");
+					}
+					printf("%s", inputArgs[i]);
 				}
 				printf("\n");
 			} else if (strncmp(inputCmd, "pwd", strlen("pwd")) == 0)
@@ -339,13 +353,20 @@ char **userInputTokenizer(char *userInput)
 		{
 			if (*c == '\\' && *nextChar != '\0')
 			{
-				c++; 
-				tmpInput[tmpIndex] = *c;
-				tmpIndex++;
+				if (*nextChar == '$' || *nextChar == '\\' 
+					|| *nextChar == '"' || *nextChar == '`' || *nextChar == ' ')
+				{
+					c++; 
+					tmpInput[tmpIndex] = *c;
+					tmpIndex++;
+					continue;
 
-				continue;
-
+				} else if (*nextChar == '\n') {
+					c++;
+					continue;
+				}
 			}
+
 			if (*c == '"' && isspace(*nextChar))
 			{
 				if (tmpIndex > 0)
@@ -529,6 +550,13 @@ char *getUserInput()
 
 			userInput = tmp;
 		}
+		
+		if (input == EOF && index == 0)
+		{
+			free(userInput);
+
+			return NULL;
+		}
 
 		if (input == '\n' || input == EOF)
 		{
@@ -545,82 +573,3 @@ char *getUserInput()
 	return userInput;
 }
 
-// char **initializeDarrString(size_t *capacity)
-// {
-// 	char **dArr = malloc((*capacity) * sizeof(char *));
-// 	if (dArr == NULL)
-// 	{
-// 		perror("Error Allocating Memory for tokenizedInputArr");
-
-// 		return NULL;
-// 	}
-
-// 	return dArr;
-// }
-
-// int increaseSizeofDarrString(char ***arr, size_t arrLastIndex, size_t *capacity)
-// {
-// 	*capacity *= 2;
-	 
-// 	char **tmp = realloc(*arr, ((*capacity) * sizeof(char *)));
-// 	if (tmp == NULL)
-// 	{
-// 		perror("Error Allocating Memory in sanetizeUserInput\n");
-
-// 		for (int i = 0; i < arrLastIndex; i++) {
-// 			free((*arr)[i]);
-// 		}
-	
-// 		return -1;
-// 	}
-// 	*arr = tmp;
-// 	return 1;
-// }
-
-// char *initializeDarr(size_t *capacity)
-// {
-// 	char *arr = malloc((*capacity) * sizeof(char));
-// 	if (arr == NULL)
-// 	{
-// 		perror("Error Allocating Memeory");
-
-// 		return NULL;
-// 	}
-
-// 	return arr;
-// }
-
-// int increaseSizeofDarr(char **arr, size_t *capacity)
-// {
-// 	*capacity *= 2;
-
-// 	char *tmp = realloc(*arr, ((*capacity) * sizeof(char)));
-// 	if (tmp == NULL) {
-// 		return  -1;
-// 	}
-
-// 	*arr = tmp;
-	
-// 	return 1;
-// }
-
-
-// int addStringToDarr(char ***dstArr, char **srcArr, size_t *arrLastIndex, size_t srcLen)
-// {
-// 	(*dstArr)[*arrLastIndex] = malloc(srcLen + 1);
-// 	if ((*dstArr)[*arrLastIndex] == NULL)
-// 	{
-// 		for (int i = 0; i < *arrLastIndex; i++) {
-// 			free((*dstArr)[i]);
-// 		}
-		
-// 		perror("Error Allocating Memory dstArr");	
-
-// 		return -1;
-
-// 	}
-// 	strcpy((*dstArr)[*arrLastIndex], *srcArr);
-// 	*arrLastIndex += 1;
-
-// 	return 1;
-// }

@@ -60,7 +60,7 @@ EQUALS = =
 CMAKE_SOURCE_DIR = /home/hunter/Documents/Projects/codecrafters-shell-c
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/hunter/Documents/Projects/codecrafters-shell-c
+CMAKE_BINARY_DIR = /home/hunter/Documents/Projects/codecrafters-shell-c/linux_build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/hunter/Documents/Projects/codecrafters-shell-c/CMakeFiles /home/hunter/Documents/Projects/codecrafters-shell-c//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/hunter/Documents/Projects/codecrafters-shell-c/linux_build/CMakeFiles /home/hunter/Documents/Projects/codecrafters-shell-c/linux_build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/hunter/Documents/Projects/codecrafters-shell-c/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/hunter/Documents/Projects/codecrafters-shell-c/linux_build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target

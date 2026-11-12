@@ -1,26 +1,246 @@
 
-# Command 1
-echo "Hello, World!" > test.txt
+# ==========================================
+# BASE FUNCTIONALITY
+# ==========================================
 
-# Expected Output 1
-Hello, World!
+---TEST---
+NAME: echo lowercase
+CMD:echo hello
+EXPECT_STDOUT:hello
+EXPECT_EXIT:0
 
-# Command 2
-echo "Hello, World!" > test.txt && echo "Again!" >> test.txt
+---TEST---
+NAME: echo multiple words
+CMD:echo hello world
+EXPECT_STDOUT:hello world
+EXPECT_EXIT:0
 
-# Expected Output 2
-Hello, World!
-Again!
+---TEST---
+NAME: echo empty string
+CMD:echo ""
+EXPECT_EXIT:0
 
-# Command 3
-echo "Initial content" > test.txt && echo "New content" > test.txt
+---TEST---
+NAME: echo multiple commands
+CMD:echo first
+CMD:echo second
+EXPECT_STDOUT:first
+EXPECT_STDOUT:second
+EXPECT_EXIT:0
 
-# Expected Output 3
-New content
+---TEST---
+NAME: unknown command
+CMD:notacommand
+EXPECT_STDERR:notacommand: command not found
+EXPECT_EXIT:0
 
-# Command 4
-echo "Error" > /nonexistent/test.txt
+---TEST---
+NAME: exit shell
+CMD:exit
+EXPECT_EXIT:0
 
-# Expected Output 4
-Error
+---TEST---
+NAME: exit after command
+CMD:echo before
+CMD:exit
+EXPECT_STDOUT:before
+EXPECT_EXIT:0
+
+---TEST---
+NAME: empty input
+CMD:
+EXPECT_EXIT:0
+
+# ---TEST---
+# NAME: false exit status
+# CMD:false
+# EXPECT_EXIT:1
+
+# ==========================================
+# BUILTINS - TYPE
+# ==========================================
+
+---TEST---
+NAME: type echo
+CMD:type echo
+EXPECT_STDOUT:echo is a shell builtin
+EXPECT_EXIT:0
+
+---TEST---
+NAME: type pwd
+CMD:type pwd
+EXPECT_STDOUT:pwd is a shell builtin
+EXPECT_EXIT:0
+
+---TEST---
+NAME: type cd
+CMD:type cd
+EXPECT_STDOUT:cd is a shell builtin
+EXPECT_EXIT:0
+
+---TEST---
+NAME: type exit
+CMD:type exit
+EXPECT_STDOUT:exit is a shell builtin
+EXPECT_EXIT:0
+
+---TEST---
+NAME: type type
+CMD:type type
+EXPECT_STDOUT:type is a shell builtin
+EXPECT_EXIT:0
+
+# ==========================================
+# EXECUTABLE LOOKUP AND EXECUTION
+# ==========================================
+
+#---TEST---
+# NAME: execute absolute executable path
+# CMD:/bin/echo external
+# EXPECT_STDOUT:external
+# EXPECT_EXIT:0
+
+---TEST---
+NAME: execute executable through PATH
+CMD:printf hello
+EXPECT_STDOUT:hello
+EXPECT_EXIT:0
+
+# ---TEST---
+# NAME: execute quoted executable
+# CMD:"/bin/echo" quoted
+# EXPECT_STDOUT:quoted
+# EXPECT_EXIT:0
+
+# ---TEST---
+# NAME: execute single quoted executable
+# CMD:'/bin/echo' quoted
+# EXPECT_STDOUT:quoted
+# EXPECT_EXIT:0
+
+# ==========================================
+# NAVIGATION - PWD
+# ==========================================
+
+---TEST---
+NAME: pwd after cd absolute
+CMD:cd /tmp
+CMD:pwd
+EXPECT_STDOUT:/tmp
+EXPECT_EXIT:0
+
+# ==========================================
+# NAVIGATION - CD
+# ==========================================
+
+---TEST---
+NAME: cd absolute path
+CMD:cd /tmp
+CMD:pwd
+EXPECT_STDOUT:/tmp
+EXPECT_EXIT:0
+
+---TEST---
+NAME: cd relative parent directory
+CMD:cd /tmp
+CMD:cd ..
+CMD:pwd
+EXPECT_STDOUT:/
+EXPECT_EXIT:0
+
+---TEST---
+NAME: cd current directory
+CMD:cd /tmp
+CMD:cd .
+CMD:pwd
+EXPECT_STDOUT:/tmp
+EXPECT_EXIT:0
+
+---TEST---
+NAME: cd home directory using tilde
+CMD:cd ~
+EXPECT_EXIT:0
+
+---TEST---
+NAME: cd home directory without argument
+CMD:cd
+EXPECT_EXIT:0
+
+# ==========================================
+# QUOTING - SINGLE QUOTES
+# ==========================================
+
+---TEST---
+NAME: single quotes preserve whitespace
+CMD:echo 'hello world'
+EXPECT_STDOUT:hello world
+EXPECT_EXIT:0
+
+---TEST---
+NAME: single quotes preserve multiple spaces
+CMD:echo 'hello    world'
+EXPECT_STDOUT:hello    world
+EXPECT_EXIT:0
+
+---TEST---
+NAME: single quotes preserve backslash
+CMD:echo 'hello\world'
+EXPECT_STDOUT:hello\world
+EXPECT_EXIT:0
+
+# ==========================================
+# QUOTING - DOUBLE QUOTES
+# ==========================================
+
+---TEST---
+NAME: double quotes preserve whitespace
+CMD:echo "hello world"
+EXPECT_STDOUT:hello world
+EXPECT_EXIT:0
+
+---TEST---
+NAME: double quotes preserve multiple spaces
+CMD:echo "hello    world"
+EXPECT_STDOUT:hello    world
+EXPECT_EXIT:0
+
+---TEST---
+NAME: double quotes escape double quote
+CMD:echo "hello \"world\""
+EXPECT_STDOUT:hello "world"
+EXPECT_EXIT:0
+
+---TEST---
+NAME: double quotes escape backslash
+CMD:echo "hello\\world"
+EXPECT_STDOUT:hello\world
+EXPECT_EXIT:0
+
+---TEST---
+NAME: double quotes preserve backslash before ordinary character
+CMD:echo "hello\world"
+EXPECT_STDOUT:hello\world
+EXPECT_EXIT:0
+
+# ==========================================
+# QUOTING - BACKSLASH OUTSIDE QUOTES
+# ==========================================
+
+---TEST---
+NAME: backslash escapes whitespace
+CMD:echo hello\ world
+EXPECT_STDOUT:hello world
+EXPECT_EXIT:0
+
+---TEST---
+NAME: backslash escapes special character
+CMD:echo hello\&world
+EXPECT_STDOUT:hello&world
+EXPECT_EXIT:0
+
+---TEST---
+NAME: backslash escapes another backslash
+CMD:echo hello\\world
+EXPECT_STDOUT:hello\world
+EXPECT_EXIT:0
 
