@@ -24,7 +24,7 @@ fi
 
 if ! command -v timeout >/dev/null 2>&1; then
     echo "Error: 'timeout' command is required" >&2
-#    exit 1
+    exit 1
 fi
 
 # --- Temporary directory ---
@@ -119,20 +119,24 @@ flush_test() {
     # Check expected stdout lines.
     local want
 
-    for want in "${cur_out[@]}"; do
-        if ! grep -Fqx -- "$want" "$STDOUT_FILE"; then
-            ok=0
-            reasons+=("stdout missing line: '$want'")
-        fi
-    done
+	if (( ${#cur_out[@]} > 0 )); then
+		for want in "${cur_out[@]}"; do
+			if ! grep -Fqx -- "$want" "$STDOUT_FILE"; then
+				ok=0
+				reasons+=("stdout missing line: '$want'")
+			fi
+		done
+	fi
 
     # Check expected stderr lines.
-    for want in "${cur_err[@]}"; do
-        if ! grep -Fqx -- "$want" "$STDERR_FILE"; then
-            ok=0
-            reasons+=("stderr missing line: '$want'")
-        fi
-    done
+	if (( ${#cur_err[@]} > 0 )); then
+		for want in "${cur_err[@]}"; do
+			if ! grep -Fqx -- "$want" "$STDERR_FILE"; then
+				ok=0
+				reasons+=("stderr missing line: '$want'")
+			fi
+		done
+	fi
 
     # --- Report result ---
 
