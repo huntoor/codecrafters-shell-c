@@ -10,7 +10,6 @@
 #include "bin_helper.h"
 #include "dynamic_arr_helper.h"
 
-//#define INPUT_MAX_SIZE 255
 char *builtInCmds[] = 
 {
 	"echo",
@@ -38,6 +37,8 @@ char **userInputTokenizer(char *userInput);
 s_command *userInputParser(char **userInputTokens);
 void freeCommand(s_command *cmd);
 char *getUserInput();
+
+void executeCommand(char *inputCmd, s_command *command, bool *isExitShell);
 
 // char **initializeDarrString(size_t *capacity);
 // int increaseSizeofDarrString(char ***arr, size_t arrLastIndex, size_t *capacity);
@@ -67,33 +68,47 @@ int main(int argc, char *argv[]) {
 
 			continue;
 		}
-
 			
-		char **inputArgs = userInputTokenizer(userInput);
-		if (inputArgs[0] == NULL)
+		char **tokenizedInput = userInputTokenizer(userInput);
+		if (tokenizedInput[0] == NULL)
 		{
-			free(inputArgs);
+			free(tokenizedInput);
 			free(userInput);
 			continue;
 		}
-//		inputCmd = inputArgs[0];
+//		inputCmd = tokenizedInput[0];
 
-		s_command *command = userInputParser(inputArgs);
+		s_command *command = userInputParser(tokenizedInput);
 		inputCmd = command->args[0];
 
+		executeCommand(inputCmd, command, &isExitShell);
 
+		for (int i = 0; tokenizedInput[i]; i++) {
+			free(tokenizedInput[i]);
+		}
+		free(tokenizedInput);
+		free(userInput);
+		freeCommand(command);
+	}
+
+	return 0;
+}
+
+void executeCommand(char *inputCmd, s_command *command, bool *isExitShell)
+{
 		if (isBuiltInCmd(inputCmd)) // Look for built in CMDs
 		{
 			if (strncmp(inputCmd, "type", strlen("type")) == 0)
 			{
-				if (inputArgs[1] == NULL)
+				if (command->args[1] == NULL)
 				{
-					free(inputArgs[0]);
-					free(inputArgs);
-					free(userInput);
-					continue;
+				//	free(tokenizedInput[0]);
+				//	free(tokenizedInput);
+				//	free(userInput);
+				//	continue;
+					return;
 				}
-				char *binaryName = inputArgs[1];
+				char *binaryName = command->args[1];
 
 				char *binaryLoc = getBinPath(binaryName, true);
 
@@ -112,16 +127,16 @@ int main(int argc, char *argv[]) {
 				free(binaryLoc);
 			} else if (!strncmp(inputCmd, "exit", strlen("exit")))
 			{
-				isExitShell = true;
+				*isExitShell = true;
 			} else if (!strncmp(inputCmd, "echo", strlen("echo"))) 
 			{
-				for (int i = 1; inputArgs[i]; i++)
+				for (int i = 1; command->args[i]; i++)
 				{
 					if (i > 1)
 					{
 						printf(" ");
 					}
-					printf("%s", inputArgs[i]);
+					printf("%s", command->args[i]);
 				}
 				printf("\n");
 			} else if (strncmp(inputCmd, "pwd", strlen("pwd")) == 0)
@@ -138,7 +153,7 @@ int main(int argc, char *argv[]) {
 
 			} else if (strncmp(inputCmd, "cd", strlen("cd")) == 0)
 			{
-				if (inputArgs[1] == NULL)
+				if (command->args[1] == NULL)
 				{
 					char *homePath = getenv("HOME");
 					if (chdir(homePath) != 0)
@@ -146,9 +161,9 @@ int main(int argc, char *argv[]) {
 						fprintf(stderr, "cd: %s: No such file or directory\n", homePath);
 					}
 				} else {
-					if (chdir(inputArgs[1]) != 0)
+					if (chdir(command->args[1]) != 0)
 					{	
-						fprintf(stderr, "cd: %s: No such file or directory\n", inputArgs[1]);
+						fprintf(stderr, "cd: %s: No such file or directory\n", command->args[1]);
 					}
 				}
 			}
@@ -158,24 +173,14 @@ int main(int argc, char *argv[]) {
 
 			if (binPathLoc != NULL)
 			{
-				executeBin2(binPathLoc, inputArgs);
+				executeBin2(binPathLoc, command->args);
 			} else {
-				fprintf(stderr, "%s: command not found\n", userInput);
+				fprintf(stderr, "%s: command not found\n", inputCmd);
 			}
 			free(binPathLoc);
 		}
-
-		for (int i = 0; inputArgs[i]; i++) {
-			free(inputArgs[i]);
-		}
-		free(inputArgs);
-		free(userInput);
-		freeCommand(command);
-	}
-
-	return 0;
+	return;
 }
-
 char **userInputTokenizer(char *userInput)
 {
 	enum parser_state {
